@@ -1,0 +1,115 @@
+"""FastAPI application.
+
+Serves the JSON search API and the mobile web UI from the *same origin*, which
+is what keeps CORS out of the picture entirely — the page and the API it calls
+share a host, so a phone browser never sees a cross-origin request.
+"""
+
+from __future__ import annotations
+
+import random
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+from .corpus import load_corpus
+from .search import DEFAULT_LIMIT, MAX_LIMIT, Name, letter_highlights, search, serialize
+
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
+# Names may be separated by a comma (Latin or Arabic) or a semicolon.
+SEPARATORS = ",،;"
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Load and index the corpus at boot, rather than on the first request.
+
+    Roughly 1.5 seconds of work that would otherwise land on whoever searches
+    first — on a cold-starting host, that is the user.
+    """
+    corpus = load_corpus()
+    print(f"Loaded {len(corpus):,} verses from {len(corpus.books)} books.")
+    yield
+
+
+app = FastAPI(
+    title="פסוק לשם",
+    description="Finds Tanakh verses matching a personal name, per the Jewish custom.",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+
+def parse_names(raw: str) -> list[Name]:
+    """Split the query into one or two validated names.
+
+    Raises an HTTP 400 with a Hebrew message, since the message is shown to the
+    user in the UI as-is.
+    """
+    for separator in SEPARATORS[1:]:
+        raw = raw.replace(separator, SEPARATORS[0])
+    parts = [part.strip() for part in raw.split(SEPARATORS[0])]
+    parts = [part for part in parts if part]
+
+    if not parts:
+        raise HTTPException(status_code=400, detail="לא הוזן שם לחיפוש")
+    if len(parts) > 2:
+        raise HTTPException(status_code=400, detail="אפשר לחפש שם אחד או שני שמות בלבד")
+
+    try:
+        return [Name.parse(part) for part in parts]
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="יש להזין שם באותיות עבריות"
+        ) from None
+
+
+@app.get("/api/health")
+def health() -> dict:
+    """Liveness check that also reports what corpus is loaded."""
+    corpus = load_corpus()
+    return {
+        "status": "ok",
+        "verses": len(corpus),
+        "books": len(corpus.books),
+        "version": corpus.version,
+        "source": corpus.source,
+        "license": corpus.license,
+    }
+
+
+@app.get("/api/search")
+def search_endpoint(
+    names: str = Query(..., description="One name, or two separated by a comma"),
+    limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
+) -> dict:
+    """Search the Tanakh for verses matching one or two names."""
+    return search(load_corpus(), parse_names(names), limit=limit)
+
+
+@app.get("/api/random")
+def random_endpoint(name: str = Query(..., description="A single name")) -> dict:
+    """One random verse whose first and last letters match the name.
+
+    Used by the UI's empty state to show the custom in action.
+    """
+    corpus = load_corpus()
+    parsed = parse_names(name)[0]
+    matches = corpus.letter_matches(parsed.first, parsed.last)
+    if not matches:
+        raise HTTPException(status_code=404, detail="לא נמצא פסוק מתאים")
+    verse = corpus.verses[random.choice(matches)]
+    return {"name": parsed.raw, "verse": serialize(verse, letter_highlights(verse))}
+
+
+@app.exception_handler(HTTPException)
+def http_exception_handler(request, exc: HTTPException) -> JSONResponse:
+    """Return errors in the shape the frontend expects: {"error": "..."}."""
+    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
+
+# Mounted last so that /api/* routes win; html=True serves index.html at "/".
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
