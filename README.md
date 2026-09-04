@@ -197,7 +197,10 @@ consecutive pair.
 
 **Render** — `render.yaml` is a blueprint; point Render at the repo and it builds
 and starts with a `/api/health` health check. On the free plan the service sleeps
-when idle, so the first request after a while pays a cold start.
+when idle, so the first request after a while pays a cold start (up to ~a minute).
+The UI accounts for this itself: if a request is still pending after 2.5s, it shows
+a "waking the server" notice rather than looking frozen, and clears it the moment
+the response arrives (`armWaking`/`disarmWaking` in `static/app.js`).
 
 **Docker** — the corpus is baked into the image, so the container needs no
 network access:

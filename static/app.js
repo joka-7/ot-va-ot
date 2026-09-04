@@ -14,6 +14,7 @@
   var submit = document.getElementById("submit");
   var results = document.getElementById("results");
   var toastEl = document.getElementById("toast");
+  var wakingEl = document.getElementById("waking");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -29,6 +30,38 @@
     if (className) node.className = className;
     if (text != null) node.textContent = text;
     return node;
+  }
+
+  // Free hosts sleep the server when idle and take up to a minute to wake on
+  // the next request. Rather than let that look like the app has frozen, show
+  // a notice -- but only once a request has been pending a couple of seconds,
+  // so it never appears on an ordinary warm response.
+  //
+  // Reference-counted rather than a single flag/timer: on page load with a
+  // #q= hash, the health check and the search fire at the same time, and one
+  // finishing quickly must not hide the banner out from under the other one
+  // that is still genuinely waiting on a cold host.
+  var WAKE_DELAY_MS = 2500;
+  var wakeTimer = null;
+  var wakingRefs = 0;
+
+  function armWaking() {
+    wakingRefs++;
+    if (wakingRefs === 1) {
+      wakeTimer = setTimeout(function () {
+        wakingEl.hidden = false;
+      }, WAKE_DELAY_MS);
+    }
+    var disarmed = false;
+    return function disarmWaking() {
+      if (disarmed) return; // guard against a stray double-call
+      disarmed = true;
+      wakingRefs = Math.max(0, wakingRefs - 1);
+      if (wakingRefs === 0) {
+        clearTimeout(wakeTimer);
+        wakingEl.hidden = true;
+      }
+    };
   }
 
   function toast(message) {
@@ -352,6 +385,7 @@
     submit.disabled = true;
     results.setAttribute("aria-busy", "true");
     renderSkeleton();
+    var disarmWaking = armWaking();
 
     fetch("/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
       .then(function (response) {
@@ -375,6 +409,7 @@
           submit.disabled = false;
           results.setAttribute("aria-busy", "false");
         }
+        disarmWaking();
       });
   }
 
@@ -403,13 +438,17 @@
     if (query) runSearch(query, false);
   });
 
+  // Also the very first request the page makes, so a cold host is
+  // explained immediately on load rather than only once the user searches.
+  var disarmHealthWaking = armWaking();
   fetch("/api/health")
     .then(function (r) { return r.json(); })
     .then(function (health) {
       document.getElementById("verse-count").textContent =
         health.verses.toLocaleString("he-IL") + " פסוקים, " + health.books + " ספרים.";
     })
-    .catch(function () { /* the footer count is decorative */ });
+    .catch(function () { /* the footer count is decorative */ })
+    .then(disarmHealthWaking);
 
   var initial = fromHash();
   if (initial) runSearch(initial, false);
