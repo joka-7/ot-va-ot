@@ -84,9 +84,10 @@ body {
 .header {
   background: linear-gradient(160deg, var(--accent) 0%, var(--accent-text) 100%);
   color: #fff;
-  padding: calc(1.5rem + env(safe-area-inset-top)) 0 1.5rem;
+  padding: calc(1rem + env(safe-area-inset-top)) 0 1.5rem;
   text-align: center;
 }
+.header-wrap { display: flex; flex-direction: column; align-items: center; }
 .title {
   font-family: var(--font-verse);
   font-size: clamp(1.9rem, 7vw, 2.5rem);
@@ -95,6 +96,36 @@ body {
   letter-spacing: -.01em;
 }
 .subtitle { margin: 0; opacity: .88; font-size: .95rem; }
+
+/* --- Language switch --- */
+
+.lang-switch {
+  display: flex;
+  gap: .3rem;
+  background: rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  padding: .25rem;
+  margin-bottom: .9rem;
+}
+.lang-btn {
+  font: 500 .8rem var(--font);
+  color: #fff;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  padding: .35rem .75rem;
+  min-height: 32px;
+  opacity: .75;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.lang-btn:hover { opacity: 1; }
+.lang-btn.active {
+  background: #fff;
+  color: var(--accent-text);
+  opacity: 1;
+  font-weight: 700;
+}
 
 /* --- Search --- */
 
@@ -153,7 +184,7 @@ body {
 .submit:active { transform: scale(.97); }
 .submit[disabled] { opacity: .6; cursor: progress; }
 
-.hint { margin: .6rem 0 0; font-size: .82rem; color: var(--text-faint); }
+.hint { margin: .6rem 0 0; font-size: .95rem; color: var(--text-soft); }
 
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
 .chip {
@@ -427,7 +458,17 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   text-align: center;
 }
 .footer a { color: var(--accent-text); }
+#footer-attribution { margin-bottom: .2rem; }
+#verse-count { margin-top: 0; }
 .footer-note { margin-bottom: 0; }
+.footer-credit {
+  margin-top: .9rem;
+  margin-bottom: 0;
+  font-size: .75rem;
+  color: var(--text-faint);
+}
+.footer-credit a { color: var(--text-faint); text-decoration: underline; }
+.footer-credit a:hover { color: var(--accent-text); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

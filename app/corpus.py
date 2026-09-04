@@ -27,8 +27,9 @@ class Verse:
     """
 
     __slots__ = (
-        "index", "book_index", "book", "section", "chapter", "number",
-        "text", "ref", "letters", "first", "last", "word_list", "word_set",
+        "index", "book_index", "book", "book_en", "book_fr", "section",
+        "chapter", "number", "text", "ref", "chapter_he", "verse_he",
+        "letters", "first", "last", "word_list", "word_set",
     )
 
     def __init__(
@@ -36,6 +37,8 @@ class Verse:
         index: int,
         book_index: int,
         book: str,
+        book_en: str,
+        book_fr: str,
         section: str,
         chapter: int,
         number: int,
@@ -44,11 +47,18 @@ class Verse:
         self.index = index
         self.book_index = book_index
         self.book = book
+        self.book_en = book_en
+        self.book_fr = book_fr
         self.section = section
         self.chapter = chapter
         self.number = number
         self.text = text
-        self.ref = f"{book} {he_number(chapter)}:{he_number(number)}"
+        # Gematria forms, precomputed once: the Hebrew-locale UI shows these
+        # rather than Arabic numerals, and the traditional citation format
+        # (used for copy-to-clipboard) always uses them regardless of locale.
+        self.chapter_he = he_number(chapter)
+        self.verse_he = he_number(number)
+        self.ref = f"{book} {self.chapter_he}:{self.verse_he}"
 
         # Normalized forms, computed once at startup so that searching is cheap.
         self.letters = normalize(text)
@@ -71,7 +81,12 @@ class Corpus:
 
         for book_index, book in enumerate(dataset["books"]):
             self.books.append(
-                {"he": book["he"], "en": book["en"], "section": book["sectionHe"]}
+                {
+                    "he": book["he"],
+                    "en": book["en"],
+                    "fr": book["fr"],
+                    "section": book["sectionHe"],
+                }
             )
             for chapter_number, chapter in enumerate(book["chapters"], start=1):
                 for verse_number, text in enumerate(chapter, start=1):
@@ -80,6 +95,8 @@ class Corpus:
                             index=len(self.verses),
                             book_index=book_index,
                             book=book["he"],
+                            book_en=book["en"],
+                            book_fr=book["fr"],
                             section=book["sectionHe"],
                             chapter=chapter_number,
                             number=verse_number,

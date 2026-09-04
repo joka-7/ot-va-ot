@@ -78,12 +78,22 @@ def name_highlights(verse: Verse, name: Name) -> list[dict]:
 
 
 def serialize(verse: Verse, highlights: list[dict] | None = None) -> dict:
-    """Shape a verse for the API."""
+    """Shape a verse for the API.
+
+    ``book`` carries all three languages so the client can label it without a
+    second request; ``chapter``/``verse`` are plain integers for an English or
+    French locale, and ``chapterHe``/``verseHe`` are the Hebrew gematria used
+    in the Hebrew locale and in ``ref`` -- the traditional citation form,
+    which stays in Hebrew regardless of the UI language, same as the verse
+    text itself.
+    """
     return {
-        "book": verse.book,
+        "book": {"he": verse.book, "en": verse.book_en, "fr": verse.book_fr},
         "section": verse.section,
         "chapter": verse.chapter,
         "verse": verse.number,
+        "chapterHe": verse.chapter_he,
+        "verseHe": verse.verse_he,
         "ref": verse.ref,
         "text": verse.text,
         "highlights": sorted(highlights or [], key=lambda h: h["start"]),
