@@ -43,27 +43,33 @@ app = FastAPI(
 )
 
 
-def parse_names(raw: str) -> list[Name]:
-    """Split the query into one or two validated names.
-
-    Raises an HTTP 400 with a Hebrew message, since the message is shown to the
-    user in the UI as-is.
+def error(code: str, message: str) -> dict:
+    """An HTTPException detail carrying both a Hebrew message, for a direct API
+    caller, and a stable machine-readable code the frontend can localize into
+    whichever of Hebrew/English/French the UI is currently showing.
     """
+    return {"code": code, "message": message}
+
+
+def parse_names(raw: str) -> list[Name]:
+    """Split the query into one or two validated names."""
     for separator in SEPARATORS[1:]:
         raw = raw.replace(separator, SEPARATORS[0])
     parts = [part.strip() for part in raw.split(SEPARATORS[0])]
     parts = [part for part in parts if part]
 
     if not parts:
-        raise HTTPException(status_code=400, detail="לא הוזן שם לחיפוש")
+        raise HTTPException(status_code=400, detail=error("empty", "לא הוזן שם לחיפוש"))
     if len(parts) > 2:
-        raise HTTPException(status_code=400, detail="אפשר לחפש שם אחד או שני שמות בלבד")
+        raise HTTPException(
+            status_code=400, detail=error("too_many", "אפשר לחפש שם אחד או שני שמות בלבד")
+        )
 
     try:
         return [Name.parse(part) for part in parts]
     except ValueError:
         raise HTTPException(
-            status_code=400, detail="יש להזין שם באותיות עבריות"
+            status_code=400, detail=error("invalid_name", "יש להזין שם באותיות עבריות")
         ) from None
 
 
@@ -100,15 +106,26 @@ def random_endpoint(name: str = Query(..., description="A single name")) -> dict
     parsed = parse_names(name)[0]
     matches = corpus.letter_matches(parsed.first, parsed.last)
     if not matches:
-        raise HTTPException(status_code=404, detail="לא נמצא פסוק מתאים")
+        raise HTTPException(status_code=404, detail=error("not_found", "לא נמצא פסוק מתאים"))
     verse = corpus.verses[random.choice(matches)]
     return {"name": parsed.raw, "verse": serialize(verse, letter_highlights(verse))}
 
 
 @app.exception_handler(HTTPException)
 def http_exception_handler(request, exc: HTTPException) -> JSONResponse:
-    """Return errors in the shape the frontend expects: {"error": "..."}."""
-    return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+    """Return errors as {"error": "<hebrew message>", "code": "<stable code>"}.
+
+    ``error`` is kept as a plain Hebrew string for a direct API caller (and for
+    backward compatibility); ``code`` lets the frontend show the message in
+    whichever locale the UI is currently in. ``code`` is null for an
+    HTTPException raised outside this module, which won't carry one.
+    """
+    detail = exc.detail
+    if isinstance(detail, dict):
+        content = {"error": detail.get("message", ""), "code": detail.get("code")}
+    else:
+        content = {"error": detail, "code": None}
+    return JSONResponse(status_code=exc.status_code, content=content)
 
 
 # Mounted last so that /api/* routes win; html=True serves index.html at "/".

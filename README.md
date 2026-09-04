@@ -147,7 +147,10 @@ GET /api/health
 ```
 
 Names are separated by `,`, `،` or `;`. Errors come back as
-`{"error": "…"}` with a Hebrew message, ready to display.
+`{"error": "…", "code": "…"}` — `error` is a Hebrew message ready to display
+as-is; `code` (`empty` | `too_many` | `invalid_name` | `not_found`) is a stable
+string the frontend uses to show the same error in whichever of Hebrew/English/
+French the UI is currently in.
 
 ```jsonc
 {
@@ -172,14 +175,43 @@ A verse:
 
 ```jsonc
 {
-  "book": "בראשית", "section": "תורה",
-  "chapter": 2, "verse": 4,
-  "ref": "בראשית ב׳:ד׳",          // Hebrew numerals, ט״ו and ט״ז included
+  "book": { "he": "בראשית", "en": "Genesis", "fr": "Genèse" },
+  "section": "תורה",
+  "chapter": 2, "verse": 4,                 // plain integers, for an en/fr locale
+  "chapterHe": "ב׳", "verseHe": "ד׳",        // gematria, for the he locale
+  "ref": "בראשית ב׳:ד׳",          // the citation form -- always Hebrew gematria,
+                                   // regardless of UI language (ט״ו and ט״ז included)
   "text": "אֵ֣לֶּה תוֹלְד֧וֹת …",
   "highlights": [ { "start": 0, "end": 3, "kind": "first" },   // kind: first | last | name
                   { "start": 112, "end": 113, "kind": "last" } ]
 }
 ```
+
+## Language
+
+The UI is available in Hebrew, English and French (`static/i18n.js`, a plain
+string table with `{token}` interpolation and one/two/other pluralization —
+Hebrew has a dedicated dual form, e.g. "שני פסוקים" rather than "2 פסוקים").
+Switching language re-renders the current results from the last response
+already in hand, with no new request to the server.
+
+Two things never translate, on purpose: **the verse text**, and **its
+citation** (`ref`, e.g. `בראשית ב׳:ד׳`) — always Hebrew, gematria included,
+the same as the custom this app is for. Everything else is UI chrome and
+follows the selected language: labels, buttons, group headings, error
+messages, and even the book name badge (`verse.book.he/en/fr`, sourced from
+Sefaria's English title and — since Sefaria doesn't provide one — a French
+name supplied in `scripts/build_dataset.py`). The chapter/verse badges switch
+between Hebrew gematria and plain digits with the language (`chapterHe`/`verseHe`
+vs. `chapter`/`verse`).
+
+Server error codes exist specifically so validation messages ("enter a name
+using Hebrew letters") can be localized too, rather than always coming back in
+Hebrew regardless of the UI language.
+
+The chosen language persists in `localStorage` and defaults to Hebrew. The
+example chips (אברהם, שרה, …) are never translated in any locale — they're
+input examples for a field that only ever accepts Hebrew names, not UI text.
 
 ## Tests
 

@@ -82,6 +82,26 @@ BOOKS: list[tuple[str, str]] = [
 # Hebrew names for the three sections of the Tanakh.
 SECTION_HE = {"Torah": "תורה", "Prophets": "נביאים", "Writings": "כתובים"}
 
+# French book names. Sefaria's export gives Hebrew and English titles but no
+# French ones, so these are supplied here -- standard French Bible book names,
+# keyed by the English title used in BOOKS above.
+BOOK_NAMES_FR = {
+    "Genesis": "Genèse", "Exodus": "Exode", "Leviticus": "Lévitique",
+    "Numbers": "Nombres", "Deuteronomy": "Deutéronome", "Joshua": "Josué",
+    "Judges": "Juges", "I Samuel": "I Samuel", "II Samuel": "II Samuel",
+    "I Kings": "I Rois", "II Kings": "II Rois", "Isaiah": "Ésaïe",
+    "Jeremiah": "Jérémie", "Ezekiel": "Ézéchiel", "Hosea": "Osée",
+    "Joel": "Joël", "Amos": "Amos", "Obadiah": "Abdias", "Jonah": "Jonas",
+    "Micah": "Michée", "Nahum": "Nahoum", "Habakkuk": "Habacuc",
+    "Zephaniah": "Sophonie", "Haggai": "Aggée", "Zechariah": "Zacharie",
+    "Malachi": "Malachie", "Psalms": "Psaumes", "Proverbs": "Proverbes",
+    "Job": "Job", "Song of Songs": "Cantique des Cantiques", "Ruth": "Ruth",
+    "Lamentations": "Lamentations", "Ecclesiastes": "Ecclésiaste",
+    "Esther": "Esther", "Daniel": "Daniel", "Ezra": "Esdras",
+    "Nehemiah": "Néhémie", "I Chronicles": "I Chroniques",
+    "II Chronicles": "II Chroniques",
+}
+
 
 # --- Text cleaning -----------------------------------------------------------
 #
@@ -178,6 +198,7 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
         "order": order,
         "he": raw["heTitle"],
         "en": raw["title"],
+        "fr": BOOK_NAMES_FR[book],
         "section": section,
         "sectionHe": SECTION_HE[section],
         "chapters": chapters,
@@ -185,6 +206,10 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
 
 
 def main() -> int:
+    missing = [book for _, book in BOOKS if book not in BOOK_NAMES_FR]
+    if missing:
+        raise SystemExit(f"BOOK_NAMES_FR is missing an entry for: {', '.join(missing)}")
+
     print(f"Fetching {len(BOOKS)} book files from Sefaria's export bucket…", file=sys.stderr)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:

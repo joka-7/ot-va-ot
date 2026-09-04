@@ -36,6 +36,16 @@ class TestCorpus:
     def test_every_verse_has_letters(self, corpus):
         assert all(verse.letters for verse in corpus.verses)
 
+    def test_every_book_has_all_three_names(self, corpus):
+        """Every book carries he/en/fr names -- catches a missing translation."""
+        for book in corpus.books:
+            assert book["he"] and book["en"] and book["fr"]
+
+    def test_known_book_names_in_all_languages(self, corpus):
+        genesis = next(b for b in corpus.books if b["he"] == "בראשית")
+        assert genesis["en"] == "Genesis"
+        assert genesis["fr"] == "Genèse"
+
 
 class TestCleanedText:
     """The export's editorial apparatus must not leak into the verse text.
@@ -154,6 +164,23 @@ class TestPairs:
         assert "pairs" not in search(corpus, [Name.parse("דוד")])
 
 
+class TestVerseShape:
+    def test_book_carries_all_three_languages(self, corpus):
+        result = search(corpus, [Name.parse("דוד")])
+        verse = result["names"][0]["letterMatch"]["verses"][0]
+        assert set(verse["book"]) == {"he", "en", "fr"}
+        assert all(verse["book"][lang] for lang in ("he", "en", "fr"))
+
+    def test_gematria_and_plain_numbers_agree(self, corpus):
+        from app.hebrew import he_number
+
+        result = search(corpus, [Name.parse("דוד")])
+        verse = result["names"][0]["letterMatch"]["verses"][0]
+        assert verse["chapterHe"] == he_number(verse["chapter"])
+        assert verse["verseHe"] == he_number(verse["verse"])
+        assert verse["ref"].endswith(f"{verse['chapterHe']}:{verse['verseHe']}")
+
+
 class TestHighlights:
     def test_letter_highlights_land_on_the_first_and_last_letters(self, corpus):
         result = search(corpus, [Name.parse("אברהם")])
@@ -213,20 +240,39 @@ class TestApi:
     def test_non_hebrew_is_rejected(self, client):
         response = client.get("/api/search", params={"names": "David"})
         assert response.status_code == 400
-        assert "עבריות" in response.json()["error"]
+        body = response.json()
+        assert "עבריות" in body["error"]
+        assert body["code"] == "invalid_name"
 
     def test_three_names_are_rejected(self, client):
         response = client.get("/api/search", params={"names": "אברהם, שרה, יצחק"})
         assert response.status_code == 400
-        assert response.json()["error"]
+        body = response.json()
+        assert body["error"]
+        assert body["code"] == "too_many"
 
     def test_empty_query_is_rejected(self, client):
-        assert client.get("/api/search", params={"names": "  ,  "}).status_code == 400
+        response = client.get("/api/search", params={"names": "  ,  "})
+        assert response.status_code == 400
+        assert response.json()["code"] == "empty"
+
+    def test_error_code_is_a_stable_contract(self, client):
+        """The frontend keys its i18n error text off these exact strings."""
+        assert client.get("/api/search", params={"names": "  ,  "}).json()["code"] == "empty"
+        assert client.get("/api/search", params={"names": "David"}).json()["code"] == "invalid_name"
+        assert client.get("/api/search", params={"names": "א, ב, ג"}).json()["code"] == "too_many"
 
     def test_random_verse_matches_the_name(self, client):
         body = client.get("/api/random", params={"name": "דוד"}).json()
         letters = normalize(body["verse"]["text"])
         assert letters[0] == "ד" and letters[-1] == "ד"
+
+    def test_random_not_found_carries_a_code(self, client, corpus):
+        # גג (first=last=ג) has no letter-match verses in the corpus.
+        assert not corpus.letter_matches("ג", "ג")
+        response = client.get("/api/random", params={"name": "גג"})
+        assert response.status_code == 404
+        assert response.json()["code"] == "not_found"
 
     def test_spa_is_served_at_the_root(self, client):
         response = client.get("/")
