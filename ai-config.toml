@@ -1,0 +1,22 @@
+# AI-assistant config manifest. Consumed by `python .ai/bin/ai-sync`, which
+# compiles the fragments named here into a root AGENTS.md and wires every
+# target tool to it. See .ai/README.md.
+
+[project]
+name = "ot-va-ot"
+
+[stack]
+# FastAPI service serving a vanilla-JS frontend from the same origin. The
+# frontend has no build step and no framework, so no "react" here.
+languages  = ["python", "javascript"]
+frameworks = []
+practices  = ["testing", "git-commits", "security", "architecture", "documentation"]
+
+[tools]
+targets = ["claude", "cursor", "gemini", "copilot"]
+
+[options]
+# `copy` rather than `symlink`: CI checkouts and the Docker build never
+# initialize .ai, and a symlink would dangle there and take AGENTS.md with it.
+# Real files always resolve. Re-run ai-sync after pulling rule updates.
+link_mode = "copy"

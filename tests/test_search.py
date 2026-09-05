@@ -306,9 +306,12 @@ class TestApi:
 
     def test_error_code_is_a_stable_contract(self, client):
         """The frontend keys its i18n error text off these exact strings."""
-        assert client.get("/api/search", params={"names": "  ,  "}).json()["code"] == "empty"
-        assert client.get("/api/search", params={"names": "David"}).json()["code"] == "invalid_name"
-        assert client.get("/api/search", params={"names": "א, ב, ג, ד"}).json()["code"] == "too_many"
+        def code_for(names: str) -> str:
+            return str(client.get("/api/search", params={"names": names}).json()["code"])
+
+        assert code_for("  ,  ") == "empty"
+        assert code_for("David") == "invalid_name"
+        assert code_for("א, ב, ג, ד") == "too_many"
 
     def test_random_verse_matches_the_name(self, client):
         body = client.get("/api/random", params={"name": "דוד"}).json()
