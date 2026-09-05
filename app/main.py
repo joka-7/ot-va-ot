@@ -43,6 +43,29 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def no_cache_static_assets(request, call_next):
+    """Force revalidation on every load of the page and its static assets.
+
+    static/*.js and static/*.css have no cache-busting in their URLs -- they
+    are always "/app.js", "/i18n.js", "/styles.css" -- so without this, a
+    browser (or an intermediate cache) that already has a copy can go on
+    serving it after a deploy changes the file's content. A translation key
+    added to i18n.js today would then render as its own literal key name in
+    a browser holding yesterday's cached copy, until that cache happened to
+    expire.
+
+    "no-cache" does not mean "don't cache" -- the browser still keeps its
+    copy, but must revalidate with the server (a cheap conditional request)
+    before using it, so a change always takes effect on the next load.
+    """
+    response = await call_next(request)
+    path = request.url.path
+    if path == "/" or path.endswith((".html", ".js", ".css")):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 def error(code: str, message: str) -> dict:
     """An HTTPException detail carrying both a Hebrew message, for a direct API
     caller, and a stable machine-readable code the frontend can localize into

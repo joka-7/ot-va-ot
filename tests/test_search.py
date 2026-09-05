@@ -326,3 +326,17 @@ class TestApi:
         response = client.get("/")
         assert response.status_code == 200
         assert 'dir="rtl"' in response.text
+
+    @pytest.mark.parametrize("path", ["/", "/app.js", "/i18n.js", "/styles.css"])
+    def test_static_assets_force_revalidation(self, client, path):
+        """static/*.js and static/*.css have no cache-busting in their URLs,
+        so a stale cached copy must never outlive a deploy: a translation key
+        added today should never render as its own literal name in a browser
+        holding yesterday's cached i18n.js."""
+        response = client.get(path)
+        assert response.headers["cache-control"] == "no-cache"
+
+    def test_api_responses_are_not_forced_no_cache(self, client):
+        """The no-cache override is scoped to static assets, not the API."""
+        response = client.get("/api/health")
+        assert "cache-control" not in {k.lower() for k in response.headers}
