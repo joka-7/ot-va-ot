@@ -160,7 +160,15 @@ body {
   min-height: 48px;       /* comfortable touch target */
   text-align: right;
 }
-.input::placeholder { color: var(--text-faint); font-weight: 400; }
+.input::placeholder {
+  color: var(--text-faint);
+  font-weight: 400;
+  /* The placeholder example got longer than the input is wide; shrinking
+     just the placeholder (not .input's own font-size, which stays >=16px
+     to stop iOS Safari zooming in on focus) keeps it from looking oversized
+     or clipped without affecting what's typed. */
+  font-size: .72rem;
+}
 .input:focus-visible,
 .submit:focus-visible,
 .chip:focus-visible,
