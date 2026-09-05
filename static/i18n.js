@@ -25,8 +25,11 @@ var I18N = (function () {
       "search.label": "שם, או שני שמות מופרדים בפסיק",
       "search.placeholder": "לדוגמה: {example}",
       "search.button": "חיפוש",
-      "search.hint": "שם אחד — פסוקים לשם. שני שמות — גם פסוקים סמוכים לזוג.",
+      "search.hint": "שם אחד, שני שמות או שלושה, מופרדים בפסיק.",
       "search.examplesAriaLabel": "דוגמאות",
+      "search.howTitle": "איך זה עובד?",
+      "search.rule.noComma": "שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.",
+      "search.rule.withComma": "שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.",
 
       "waking.message": "מעיר את השרת… בפעם הראשונה אחרי זמן מנוחה זה עלול לקחת כדקה.",
 
@@ -43,12 +46,12 @@ var I18N = (function () {
       "group.empty.title": "לא נמצאו פסוקים עבור {name}",
       "group.empty.desc": "לא נמצא פסוק המתחיל באות {first} ומסתיים באות {last}.",
 
-      "pair.consecutive.title": "פסוקים סמוכים",
+      "pair.consecutive.title": "פסוקים סמוכים — {name1} ו{name2}",
       "pair.consecutive.desc": "פסוק אחרי פסוק: הראשון מתאים ל{name1}, והבא אחריו ל{name2}.",
-      "pair.reversed.title": "פסוקים סמוכים — בסדר הפוך",
+      "pair.reversed.title": "פסוקים סמוכים — {name1} ו{name2} (בסדר הפוך)",
       "pair.reversed.desc": "אותו הדבר, כאשר {name2} מופיע ראשון.",
-      "pair.nearMiss.title": "כמעט סמוכים",
-      "pair.nearMiss.desc": "פסוק אחד מפריד ביניהם.",
+      "pair.nearMiss.title": "כמעט סמוכים — {name1} ו{name2}",
+      "pair.nearMiss.desc": "פסוק אחד מפריד בין {name1} ל{name2}.",
       "pair.empty.title": "לא נמצאו פסוקים סמוכים",
       "pair.empty.desc": "צירוף של שני פסוקים סמוכים המתאימים ל{name1} ול{name2} הוא נדיר — רוב צמדי השמות אינם מופיעים כך בתנ״ך כלל. הפסוקים של כל שם בנפרד מופיעים למטה.",
 
@@ -57,6 +60,7 @@ var I18N = (function () {
       "copy.toastCopied": "הפסוק הועתק",
       "copy.toastFailed": "ההעתקה נכשלה",
       "more.button": "הצג עוד {n}",
+      "group.exampleToggle": "דוגמה",
       "count.showingOf": "מציג {shown} מתוך {totalPhrase}",
       "pair.matches": { one: "התאמה אחת", other: "{n} התאמות" },
       "footer.summary": "{versesPhrase}, {booksPhrase}.",
@@ -64,7 +68,7 @@ var I18N = (function () {
       "error.title": "שגיאה",
       "error.generic": "החיפוש נכשל",
       "error.code.empty": "לא הוזן שם לחיפוש",
-      "error.code.too_many": "אפשר לחפש שם אחד או שני שמות בלבד",
+      "error.code.too_many": "אפשר לחפש בין שם אחד לשלושה שמות",
       "error.code.invalid_name": "יש להזין שם באותיות עבריות",
 
       "footer.attributionHtml":
@@ -87,8 +91,11 @@ var I18N = (function () {
       "search.label": "A name, or two names separated by a comma",
       "search.placeholder": "e.g. {example}",
       "search.button": "Search",
-      "search.hint": "One name — verses for it. Two names — also consecutive verses for the pair.",
+      "search.hint": "One name, two, or three, separated by a comma.",
       "search.examplesAriaLabel": "Examples",
+      "search.howTitle": "How does this work?",
+      "search.rule.noComma": "Names without a comma — the first letter of the first name, the last letter of the last name.",
+      "search.rule.withComma": "Names with a comma — search for consecutive verses of the names.",
 
       "waking.message": "Waking up the server… the first request after a while can take up to a minute.",
 
@@ -105,12 +112,12 @@ var I18N = (function () {
       "group.empty.title": "No verses found for {name}",
       "group.empty.desc": "No verse begins with the letter {first} and ends with the letter {last}.",
 
-      "pair.consecutive.title": "Consecutive Verses",
+      "pair.consecutive.title": "Consecutive Verses — {name1} and {name2}",
       "pair.consecutive.desc": "Verse after verse: the first matches {name1}, and the one right after it matches {name2}.",
-      "pair.reversed.title": "Consecutive Verses — Reversed Order",
+      "pair.reversed.title": "Consecutive Verses — {name1} and {name2} (Reversed)",
       "pair.reversed.desc": "The same, with {name2} appearing first.",
-      "pair.nearMiss.title": "Near-Consecutive",
-      "pair.nearMiss.desc": "One verse separates them.",
+      "pair.nearMiss.title": "Near-Consecutive — {name1} and {name2}",
+      "pair.nearMiss.desc": "One verse separates {name1} and {name2}.",
       "pair.empty.title": "No consecutive verses found",
       "pair.empty.desc": "A pair of consecutive verses matching {name1} and {name2} is rare — most name pairs don't occur that way in the Tanakh at all. Each name's own verses appear below.",
 
@@ -119,6 +126,7 @@ var I18N = (function () {
       "copy.toastCopied": "Verse copied",
       "copy.toastFailed": "Copy failed",
       "more.button": "Show {n} more",
+      "group.exampleToggle": "Example",
       "count.showingOf": "Showing {shown} of {totalPhrase}",
       "pair.matches": { one: "1 match", other: "{n} matches" },
       "footer.summary": "{versesPhrase}, {booksPhrase}.",
@@ -126,7 +134,7 @@ var I18N = (function () {
       "error.title": "Error",
       "error.generic": "Search failed",
       "error.code.empty": "Enter a name to search",
-      "error.code.too_many": "You can search for one name or two, no more",
+      "error.code.too_many": "You can search for one, two, or three names, no more",
       "error.code.invalid_name": "Enter a name using Hebrew letters",
 
       "footer.attributionHtml":
@@ -149,8 +157,11 @@ var I18N = (function () {
       "search.label": "Un prénom, ou deux prénoms séparés par une virgule",
       "search.placeholder": "par ex. {example}",
       "search.button": "Rechercher",
-      "search.hint": "Un prénom — les versets qui lui correspondent. Deux prénoms — aussi les versets consécutifs du couple.",
+      "search.hint": "Un prénom, deux, ou trois, séparés par une virgule.",
       "search.examplesAriaLabel": "Exemples",
+      "search.howTitle": "Comment ça marche ?",
+      "search.rule.noComma": "Prénoms sans virgule — première lettre du premier prénom, dernière lettre du dernier prénom.",
+      "search.rule.withComma": "Prénoms avec une virgule — recherche de versets consécutifs des prénoms.",
 
       "waking.message": "Réveil du serveur… la première requête après une pause peut prendre jusqu'à une minute.",
 
@@ -167,12 +178,12 @@ var I18N = (function () {
       "group.empty.title": "Aucun verset trouvé pour {name}",
       "group.empty.desc": "Aucun verset ne commence par la lettre {first} et ne finit par la lettre {last}.",
 
-      "pair.consecutive.title": "Versets consécutifs",
+      "pair.consecutive.title": "Versets consécutifs — {name1} et {name2}",
       "pair.consecutive.desc": "Verset après verset : le premier correspond à {name1}, et celui qui suit correspond à {name2}.",
-      "pair.reversed.title": "Versets consécutifs — ordre inversé",
+      "pair.reversed.title": "Versets consécutifs — {name1} et {name2} (ordre inversé)",
       "pair.reversed.desc": "La même chose, {name2} apparaissant en premier.",
-      "pair.nearMiss.title": "Presque consécutifs",
-      "pair.nearMiss.desc": "Un verset les sépare.",
+      "pair.nearMiss.title": "Presque consécutifs — {name1} et {name2}",
+      "pair.nearMiss.desc": "Un verset sépare {name1} et {name2}.",
       "pair.empty.title": "Aucun verset consécutif trouvé",
       "pair.empty.desc": "Une paire de versets consécutifs correspondant à {name1} et {name2} est rare — la plupart des paires de prénoms n'apparaissent pas ainsi dans le Tanakh. Les versets propres à chaque prénom apparaissent ci-dessous.",
 
@@ -181,6 +192,7 @@ var I18N = (function () {
       "copy.toastCopied": "Verset copié",
       "copy.toastFailed": "Échec de la copie",
       "more.button": "Afficher {n} de plus",
+      "group.exampleToggle": "Exemple",
       "count.showingOf": "Affichage de {shown} sur {totalPhrase}",
       "pair.matches": { one: "1 correspondance", other: "{n} correspondances" },
       "footer.summary": "{versesPhrase}, {booksPhrase}.",
@@ -188,7 +200,7 @@ var I18N = (function () {
       "error.title": "Erreur",
       "error.generic": "La recherche a échoué",
       "error.code.empty": "Saisissez un prénom à rechercher",
-      "error.code.too_many": "Vous pouvez rechercher un ou deux prénoms, pas plus",
+      "error.code.too_many": "Vous pouvez rechercher un, deux ou trois prénoms, pas plus",
       "error.code.invalid_name": "Saisissez un prénom en lettres hébraïques",
 
       "footer.attributionHtml":
@@ -261,6 +273,25 @@ var I18N = (function () {
     }
   }
 
+  /*
+   * Per-result-group worked examples, revealed on demand ("show example")
+   * under that group's description. A group with no entry here simply gets
+   * no toggle at all -- nothing to see until content is added. Keys match the
+   * `exampleKey` passed to renderGroup/renderPairGroup in app.js:
+   * group.letterMatch, group.exactWord, group.partialWord, pair.consecutive,
+   * pair.reversed, pair.nearMiss. Add the Hebrew text first; keep English and
+   * French entries in lockstep with any Hebrew addition.
+   */
+  var EXAMPLES = {
+    // "group.letterMatch": { he: "...", en: "...", fr: "..." },
+  };
+
+  function example(locale, key) {
+    var entry = EXAMPLES[key];
+    if (!entry) return null;
+    return entry[locale] || entry[DEFAULT_LOCALE] || null;
+  }
+
   return {
     LOCALES: LOCALES,
     DEFAULT_LOCALE: DEFAULT_LOCALE,
@@ -269,5 +300,6 @@ var I18N = (function () {
     t: t,
     plural: plural,
     formatNumber: formatNumber,
+    example: example,
   };
 })();

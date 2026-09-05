@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .corpus import load_corpus
-from .search import DEFAULT_LIMIT, MAX_LIMIT, Name, letter_highlights, search, serialize
+from .search import DEFAULT_LIMIT, MAX_LIMIT, MAX_NAMES, Name, letter_highlights, search, serialize
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -60,9 +60,9 @@ def parse_names(raw: str) -> list[Name]:
 
     if not parts:
         raise HTTPException(status_code=400, detail=error("empty", "לא הוזן שם לחיפוש"))
-    if len(parts) > 2:
+    if len(parts) > MAX_NAMES:
         raise HTTPException(
-            status_code=400, detail=error("too_many", "אפשר לחפש שם אחד או שני שמות בלבד")
+            status_code=400, detail=error("too_many", "אפשר לחפש בין שם אחד לשלושה שמות")
         )
 
     try:

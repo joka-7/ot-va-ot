@@ -4,15 +4,23 @@ Three kinds of search, all of them working on the normalized forms that
 ``Verse`` precomputes at startup:
 
 1. **Letter match** — the primary Jewish custom: the verse begins with the
-   name's first letter and ends with its last letter.
+   name's first letter and ends with its last letter. A name with no comma
+   but more than one word (e.g. "אסתר מלכה") is one compound name here: its
+   first letter is the first letter of its first word, its last letter the
+   last letter of its last word, since whitespace is stripped before the
+   comparison -- exactly the traditional reading of a multi-word name.
 2. **Name in verse** — the name appears in the text, in two tiers so that clean
    matches lead and noisy ones stay clearly separated.
-3. **Pairs** — for two names, consecutive verses matching one name then the
-   other, which is the traditional find for a couple.
+3. **Pairs** — for two or three names (each name separated by a comma),
+   consecutive verses matching one name then another, which is the
+   traditional find for a couple. With three names, every combination of two
+   of them is checked, since a full three-way consecutive run is vanishingly
+   rare on top of an already-rare pair.
 """
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 
 from .corpus import Corpus, Verse
@@ -22,6 +30,9 @@ from .hebrew import first_last, has_hebrew, letter_positions, mark_end, normaliz
 # always reported alongside, so the client can say "showing 100 of 259".
 DEFAULT_LIMIT = 100
 MAX_LIMIT = 500
+
+# One name, or up to this many separated by commas.
+MAX_NAMES = 3
 
 # Pairs are rare enough that returning all of them is never a problem.
 PAIR_LIMIT = 50
@@ -127,7 +138,7 @@ def search_name(corpus: Corpus, name: Name, limit: int) -> dict:
     }
 
 
-# --- Two-name (couples) search ----------------------------------------------
+# --- Pair (consecutive-verse) search ----------------------------------------
 
 
 def find_pairs(corpus: Corpus, first_name: Name, second_name: Name, gap: int) -> list[dict]:
@@ -159,26 +170,37 @@ def find_pairs(corpus: Corpus, first_name: Name, second_name: Name, gap: int) ->
     return results
 
 
-def search_pair(corpus: Corpus, names: list[Name], limit: int) -> dict:
-    """Run the couples search: pairs first, then each name's own matches."""
-    first_name, second_name = names
+def build_pair_group(corpus: Corpus, name_a: Name, name_b: Name) -> dict:
+    """All pair-based results between two of the search's names."""
     return {
-        "consecutive": find_pairs(corpus, first_name, second_name, gap=1),
-        "reversed": find_pairs(corpus, second_name, first_name, gap=1),
-        "nearMiss": find_pairs(corpus, first_name, second_name, gap=2),
+        "names": [name_a.raw, name_b.raw],
+        "consecutive": find_pairs(corpus, name_a, name_b, gap=1),
+        "reversed": find_pairs(corpus, name_b, name_a, gap=1),
+        "nearMiss": find_pairs(corpus, name_a, name_b, gap=2),
     }
+
+
+def search_multi(corpus: Corpus, names: list[Name]) -> list[dict]:
+    """A pair group for every unique combination of two of the given names.
+
+    Two names -> one combination. Three names -> three (each possible duo).
+    """
+    return [
+        build_pair_group(corpus, names[i], names[j])
+        for i, j in itertools.combinations(range(len(names)), 2)
+    ]
 
 
 # --- Entry point -------------------------------------------------------------
 
 
 def search(corpus: Corpus, names: list[Name], limit: int = DEFAULT_LIMIT) -> dict:
-    """Run the full search for one or two names."""
+    """Run the full search for one, two, or three names."""
     limit = max(1, min(limit, MAX_LIMIT))
     result = {
-        "query": {"names": [n.raw for n in names], "mode": "pair" if len(names) == 2 else "single"},
+        "query": {"names": [n.raw for n in names], "mode": "single" if len(names) == 1 else "multi"},
         "names": [search_name(corpus, name, limit) for name in names],
     }
-    if len(names) == 2:
-        result["pairs"] = search_pair(corpus, names, limit)
+    if len(names) >= 2:
+        result["pairs"] = search_multi(corpus, names)
     return result
