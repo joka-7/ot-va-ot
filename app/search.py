@@ -48,7 +48,7 @@ class Name:
     last: str
 
     @classmethod
-    def parse(cls, raw: str) -> "Name":
+    def parse(cls, raw: str) -> Name:
         text = raw.strip()
         if not has_hebrew(text):
             raise ValueError(f"'{raw}' does not contain Hebrew letters")
@@ -198,7 +198,10 @@ def search(corpus: Corpus, names: list[Name], limit: int = DEFAULT_LIMIT) -> dic
     """Run the full search for one, two, or three names."""
     limit = max(1, min(limit, MAX_LIMIT))
     result = {
-        "query": {"names": [n.raw for n in names], "mode": "single" if len(names) == 1 else "multi"},
+        "query": {
+            "names": [n.raw for n in names],
+            "mode": "single" if len(names) == 1 else "multi",
+        },
         "names": [search_name(corpus, name, limit) for name in names],
     }
     if len(names) >= 2:

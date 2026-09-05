@@ -27,9 +27,23 @@ class Verse:
     """
 
     __slots__ = (
-        "index", "book_index", "book", "book_en", "book_fr", "section",
-        "chapter", "number", "text", "ref", "chapter_he", "verse_he",
-        "letters", "first", "last", "word_list", "word_set",
+        "book",
+        "book_en",
+        "book_fr",
+        "book_index",
+        "chapter",
+        "chapter_he",
+        "first",
+        "index",
+        "last",
+        "letters",
+        "number",
+        "ref",
+        "section",
+        "text",
+        "verse_he",
+        "word_list",
+        "word_set",
     )
 
     def __init__(

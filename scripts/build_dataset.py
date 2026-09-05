@@ -18,9 +18,9 @@ License: Public Domain
 from __future__ import annotations
 
 import concurrent.futures
-import re
 import gzip
 import json
+import re
 import sys
 import urllib.error
 import urllib.parse
