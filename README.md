@@ -263,6 +263,13 @@ consecutive pair.
 
 ## Deploying
 
+`static/*.js`, `*.css` and `/` are served with `Cache-Control: no-cache`
+(`app/main.py`), so every deploy takes effect immediately — a browser always
+revalidates before using a cached copy, rather than a stale `i18n.js` (say)
+outliving a deploy because its URL never changes. Revalidation is still cheap
+(a 304 when the file hasn't changed); this only forces the check, not a full
+re-download. `/api/*` responses are untouched by this.
+
 **Render** — `render.yaml` is a blueprint; point Render at the repo and it builds
 and starts with a `/api/health` health check. On the free plan the service sleeps
 when idle, so the first request after a while pays a cold start (up to ~a minute).
