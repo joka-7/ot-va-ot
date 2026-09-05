@@ -186,6 +186,23 @@ body {
 
 .hint { margin: .6rem 0 0; font-size: .95rem; color: var(--text-soft); }
 
+/* Native <details>: closed by default, no JS needed, keyboard- and
+   screen-reader-friendly for free. Used both for "how does this work?" and
+   for a per-result-group worked example. */
+.how-it-works {
+  margin-top: .5rem;
+  font-size: .85rem;
+  color: var(--text-soft);
+}
+.how-it-works summary {
+  cursor: pointer;
+  color: var(--accent-text);
+  font-weight: 500;
+  padding: .3rem 0;
+}
+.how-it-works p { margin: .4rem 0 0; }
+.how-it-works p + p { margin-top: .3rem; }
+
 .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
 .chip {
   font: 500 .85rem var(--font);
@@ -256,6 +273,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .group-desc { margin: 0 0 .85rem; font-size: .85rem; color: var(--text-soft); }
+
+.example { margin: -.4rem 0 .85rem; font-size: .85rem; }
+.example summary {
+  cursor: pointer;
+  color: var(--accent-text);
+  font-weight: 500;
+  display: inline-block;
+}
+.example-text {
+  margin: .5rem 0 0;
+  padding: .6rem .75rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-soft);
+}
 
 .name-head {
   display: flex;

@@ -229,7 +229,24 @@
    * One result group: a heading, an optional description, the verses, and a
    * "show more" button when the group was capped.
    */
-  function renderGroup(titleKey, descKey, descVars, group, note) {
+  /*
+   * A collapsed "show example" disclosure, added under a group's description
+   * when one exists for it (see I18N.example -- empty until worked examples
+   * are supplied). Uses the native <details> element: closed by default, no
+   * JS needed to reveal it, and it stays keyboard- and screen-reader-friendly
+   * for free.
+   */
+  function exampleDisclosure(text) {
+    var details = document.createElement("details");
+    details.className = "example";
+    var summary = document.createElement("summary");
+    summary.textContent = t(locale, "group.exampleToggle");
+    details.appendChild(summary);
+    details.appendChild(hebrewSpan("p", "example-text", text));
+    return details;
+  }
+
+  function renderGroup(titleKey, descKey, descVars, group, exampleKey, note) {
     if (!group || !group.total) return null;
 
     var section = el("section", "group");
@@ -244,6 +261,9 @@
     section.appendChild(head);
 
     if (descKey) section.appendChild(el("p", "group-desc", t(locale, descKey, descVars)));
+
+    var exampleText = exampleKey && I18N.example(locale, exampleKey);
+    if (exampleText) section.appendChild(exampleDisclosure(exampleText));
 
     var visible = group.verses.slice(0, 10);
     var rest = group.verses.slice(10);
@@ -287,20 +307,44 @@
     return wrapper;
   }
 
-  function renderPairGroup(titleKey, descKey, descVars, pairs) {
+  function renderPairGroup(titleKey, descKey, descVars, exampleKey, pairs) {
     if (!pairs || !pairs.length) return null;
 
     var section = el("section", "group");
     var head = el("div", "group-head");
-    head.appendChild(el("h3", "group-title", t(locale, titleKey)));
+    head.appendChild(el("h3", "group-title", t(locale, titleKey, descVars)));
     head.appendChild(el("span", "group-count", plural(locale, "pair.matches", pairs.length)));
     section.appendChild(head);
 
     if (descKey) section.appendChild(el("p", "group-desc", t(locale, descKey, descVars)));
+    var exampleText = exampleKey && I18N.example(locale, exampleKey);
+    if (exampleText) section.appendChild(exampleDisclosure(exampleText));
+
     pairs.forEach(function (pair) {
       section.appendChild(renderPair(pair));
     });
     return section;
+  }
+
+  /*
+   * All pair-based results (consecutive / reversed / near-miss) for one duo
+   * out of the search's names. With two names there is exactly one of these;
+   * with three, one per possible pair, each independently labeled with which
+   * two names it covers so they're never ambiguous next to one another.
+   */
+  function renderPairGroupSet(pairGroup) {
+    var names = pairGroup.names;
+    var vars = { name1: names[0], name2: names[1] };
+    var sections = [
+      renderPairGroup("pair.consecutive.title", "pair.consecutive.desc", vars, "pair.consecutive", pairGroup.consecutive),
+      renderPairGroup("pair.reversed.title", "pair.reversed.desc", vars, "pair.reversed", pairGroup.reversed),
+      renderPairGroup("pair.nearMiss.title", "pair.nearMiss.desc", vars, "pair.nearMiss", pairGroup.nearMiss),
+    ].filter(Boolean);
+
+    if (!sections.length) {
+      return [notice(t(locale, "pair.empty.title", vars), t(locale, "pair.empty.desc", vars))];
+    }
+    return sections;
   }
 
   function render(data) {
@@ -308,27 +352,14 @@
     pending = Object.create(null);
 
     var any = false;
-    var isPair = data.query.mode === "pair";
 
-    if (isPair) {
-      var names = data.query.names;
-      var pairVars = { name1: names[0], name2: names[1] };
-      var groups = [
-        renderPairGroup("pair.consecutive.title", "pair.consecutive.desc", pairVars, data.pairs.consecutive),
-        renderPairGroup("pair.reversed.title", "pair.reversed.desc", pairVars, data.pairs.reversed),
-        renderPairGroup("pair.nearMiss.title", "pair.nearMiss.desc", null, data.pairs.nearMiss),
-      ];
-
-      groups.forEach(function (group) {
-        if (group) {
-          results.appendChild(group);
+    if (data.query.mode === "multi") {
+      data.pairs.forEach(function (pairGroup) {
+        renderPairGroupSet(pairGroup).forEach(function (node) {
+          results.appendChild(node);
           any = true;
-        }
+        });
       });
-
-      if (!any) {
-        results.appendChild(noPairsNotice(pairVars));
-      }
     }
 
     data.names.forEach(function (entry) {
@@ -339,9 +370,9 @@
 
       var letterVars = { first: entry.first, last: entry.last };
       var groups = [
-        renderGroup("group.letterMatch.title", "group.letterMatch.desc", letterVars, entry.letterMatch),
-        renderGroup("group.exactWord.title", "group.exactWord.desc", null, entry.exactWord),
-        renderGroup("group.partialWord.title", "group.partialWord.desc", null, entry.partialWord),
+        renderGroup("group.letterMatch.title", "group.letterMatch.desc", letterVars, entry.letterMatch, "group.letterMatch"),
+        renderGroup("group.exactWord.title", "group.exactWord.desc", null, entry.exactWord, "group.exactWord"),
+        renderGroup("group.partialWord.title", "group.partialWord.desc", null, entry.partialWord, "group.partialWord"),
       ];
 
       var found = false;
@@ -369,12 +400,6 @@
     box.appendChild(el("strong", null, title));
     box.appendChild(document.createTextNode(body));
     return box;
-  }
-
-  /* Consecutive pairs are genuinely rare, so the empty state explains why
-     rather than implying the user typed something wrong. */
-  function noPairsNotice(pairVars) {
-    return notice(t(locale, "pair.empty.title"), t(locale, "pair.empty.desc", pairVars));
   }
 
   function renderSkeleton() {

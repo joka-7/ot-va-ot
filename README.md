@@ -3,8 +3,9 @@
 A mobile-first Hebrew web app for the custom of saying a verse that matches your
 name: a verse whose **first letter** matches the name's first letter and whose
 **last letter** matches its last letter, traditionally recited at the end of the
-Amidah. It also finds verses that contain the name outright, and — for a couple —
-pairs of **consecutive verses** matching two names in order.
+Amidah. It also finds verses that contain the name outright, and — for two or
+three names, comma-separated — pairs of **consecutive verses** matching two of
+them in order.
 
 Everything runs from one small FastAPI service: the API and the UI are served
 from the same origin, and the full Tanakh is bundled locally, so there is no CORS
@@ -113,7 +114,11 @@ a highlighted letter never gets separated from its vowel.
 ## Matching
 
 **Letter match** (the primary custom) — first and last letters, finals folded.
-An O(1) lookup against an index built at startup.
+An O(1) lookup against an index built at startup. A query with no comma but
+more than one word (e.g. `אסתר מלכה`) is one compound name: whitespace is
+stripped before the comparison, so its first letter is the first letter of its
+first word and its last letter is the last letter of its last word — the
+traditional reading of a multi-word name, not two separate names.
 
 **Name in verse**, in two tiers, because raw substring matching is very noisy —
 `שרה` appears as a bare substring in 918 verses (matching `אשרה`, `ישרה`, and the
@@ -126,15 +131,24 @@ verb `שרה`):
 
 The tiers never overlap, and the clean matches lead.
 
-**Pairs**, for two names. Consecutive verses are genuinely rare — `אברהם, שרה`
-yields exactly **one** pair in the whole Tanakh, and many name pairs yield none —
-so the search is widened into three labelled groups:
+**Pairs**, for two or three comma-separated names. Consecutive verses are
+genuinely rare — `אברהם, שרה` yields exactly **one** pair in the whole Tanakh,
+and many name pairs yield none — so the search is widened into three labelled
+groups per pair of names:
 
 - `consecutive` — verse N matches name 1, verse N+1 matches name 2. Both verses
   must be in the same book, but they may cross a chapter boundary, since the last
   verse of a chapter and the first of the next really are consecutive.
 - `reversed` — the same, with the names swapped.
 - `nearMiss` — one verse in between (N and N+2).
+
+With **three names**, every combination of two of them is checked (three
+combinations), each labeled with which two names it covers, rather than
+requiring all three in a row — a three-way consecutive run would be rarer
+still on top of an already-rare pair. `אברהם, יצחק, יעקב` (Abraham, Isaac,
+Jacob) turns up nothing for Abraham+Isaac, a near-miss for Abraham+Jacob
+(Proverbs 24:19, 21), and a genuine consecutive pair for Isaac+Jacob
+(Job 39:21–22).
 
 ## API
 
@@ -146,27 +160,33 @@ GET /api/random?name=דוד
 GET /api/health
 ```
 
-Names are separated by `,`, `،` or `;`. Errors come back as
-`{"error": "…", "code": "…"}` — `error` is a Hebrew message ready to display
-as-is; `code` (`empty` | `too_many` | `invalid_name` | `not_found`) is a stable
-string the frontend uses to show the same error in whichever of Hebrew/English/
-French the UI is currently in.
+Names are separated by `,`, `،` or `;` — one name, or up to three. Errors come
+back as `{"error": "…", "code": "…"}` — `error` is a Hebrew message ready to
+display as-is; `code` (`empty` | `too_many` | `invalid_name` | `not_found`) is
+a stable string the frontend uses to show the same error in whichever of
+Hebrew/English/French the UI is currently in.
 
 ```jsonc
 {
-  "query":  { "names": ["אברהם", "שרה"], "mode": "pair" },
-  "pairs":  {
-    "consecutive": [ { "first": {…}, "second": {…},
-                       "firstName": "אברהם", "secondName": "שרה",
-                       "crossesChapter": false } ],
-    "reversed": [ … ],
-    "nearMiss": [ … ]
-  },
+  "query": { "names": ["אברהם", "יצחק", "יעקב"], "mode": "multi" },  // "single" for one name
+  "pairs": [
+    // one entry per combination of two of the names (three names -> three entries)
+    { "names": ["אברהם", "יצחק"],
+      "consecutive": [ { "first": {…}, "second": {…},
+                         "firstName": "אברהם", "secondName": "יצחק",
+                         "crossesChapter": false } ],
+      "reversed": [ … ],
+      "nearMiss": [ … ] },
+    { "names": ["אברהם", "יעקב"], "consecutive": [ … ], "reversed": [ … ], "nearMiss": [ … ] },
+    { "names": ["יצחק", "יעקב"], "consecutive": [ … ], "reversed": [ … ], "nearMiss": [ … ] }
+  ],
   "names": [
     { "name": "אברהם", "first": "א", "last": "מ",
       "letterMatch": { "total": 297, "verses": [ … ] },   // capped by `limit`,
       "exactWord":   { "total": 128, "verses": [ … ] },   // `total` is the true count
-      "partialWord": { "total":  31, "verses": [ … ] } }
+      "partialWord": { "total":  31, "verses": [ … ] } },
+    { "name": "יצחק", … },
+    { "name": "יעקב", … }
   ]
 }
 ```
@@ -212,6 +232,22 @@ Hebrew regardless of the UI language.
 The chosen language persists in `localStorage` and defaults to Hebrew. The
 example chips (אברהם, שרה, …) are never translated in any locale — they're
 input examples for a field that only ever accepts Hebrew names, not UI text.
+
+## In-app help
+
+A collapsed **"How does this work?"** disclosure sits under the search hint
+(native `<details>`, so it needs no JS to open), explaining the two input
+rules: no comma is one compound name (first letter of the first word, last
+letter of the last word); a comma means separate names, and triggers the
+consecutive-verse search.
+
+Each result group can also carry a collapsed **"Example"** disclosure of its
+own (`I18N.example(locale, key)` in `static/i18n.js`) — closed by default, and
+simply absent when no text has been supplied for that group yet. The lookup
+table (`EXAMPLES` in `i18n.js`) currently has no entries; add a `{he, en, fr}`
+object under the relevant key (`group.letterMatch`, `group.exactWord`,
+`group.partialWord`, `pair.consecutive`, `pair.reversed`, `pair.nearMiss`) to
+have that group's toggle appear.
 
 ## Tests
 

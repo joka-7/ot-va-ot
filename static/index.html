@@ -40,12 +40,20 @@
         </button>
       </div>
       <p class="hint" id="hint" data-i18n="search.hint">שם אחד — פסוקים לשם. שני שמות — גם פסוקים סמוכים לזוג.</p>
+      <details class="how-it-works">
+        <summary data-i18n="search.howTitle">איך זה עובד?</summary>
+        <p data-i18n="search.rule.noComma">שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.</p>
+        <p data-i18n="search.rule.withComma">שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.</p>
+      </details>
       <div class="chips" id="examples" role="group" data-i18n-aria-label="search.examplesAriaLabel" aria-label="דוגמאות">
         <button class="chip" type="button" dir="rtl" data-q="אברהם">אברהם</button>
         <button class="chip" type="button" dir="rtl" data-q="שרה">שרה</button>
-        <button class="chip" type="button" dir="rtl" data-q="אברהם, שרה">אברהם, שרה</button>
+        <button class="chip" type="button" dir="rtl" data-q="אסתר מלכה">אסתר מלכה</button>
+        <button class="chip" type="button" dir="rtl" data-q="אברהם יצחק">אברהם יצחק</button>
+        <button class="chip" type="button" dir="rtl" data-q="חיה, שרה">חיה, שרה</button>
         <button class="chip" type="button" dir="rtl" data-q="אברהם, יצחק">אברהם, יצחק</button>
-        <button class="chip" type="button" dir="rtl" data-q="דוד, מיכל">דוד, מיכל</button>
+        <button class="chip" type="button" dir="rtl" data-q="יצחק, רבקה">יצחק, רבקה</button>
+        <button class="chip" type="button" dir="rtl" data-q="אברהם, יצחק, יעקב">אברהם, יצחק, יעקב</button>
       </div>
     </form>
 

@@ -137,14 +137,22 @@ class TestNameInVerse:
         assert corpus.exact_word_matches(normalize("אברהם")) == corpus.exact_word_matches("אברהמ")
 
 
+def pair_group(result: dict, name_a: str, name_b: str) -> dict:
+    """Find the pair group for a specific duo, regardless of list order."""
+    for group in result["pairs"]:
+        if set(group["names"]) == {name_a, name_b}:
+            return group
+    raise AssertionError(f"no pair group for {name_a!r}/{name_b!r}")
+
+
 class TestPairs:
     def test_abraham_and_sarah_have_exactly_one_consecutive_pair(self, corpus):
         result = search(corpus, [Name.parse("אברהם"), Name.parse("שרה")])
-        assert len(result["pairs"]["consecutive"]) == 1
+        assert len(pair_group(result, "אברהם", "שרה")["consecutive"]) == 1
 
     def test_pair_verses_are_adjacent_and_ordered(self, corpus):
         result = search(corpus, [Name.parse("אברהם"), Name.parse("שרה")])
-        pair = result["pairs"]["consecutive"][0]
+        pair = pair_group(result, "אברהם", "שרה")["consecutive"][0]
         assert pair["first"]["book"] == pair["second"]["book"]
         assert pair["second"]["verse"] == pair["first"]["verse"] + 1
 
@@ -157,11 +165,34 @@ class TestPairs:
 
     def test_near_miss_leaves_one_verse_between(self, corpus):
         result = search(corpus, [Name.parse("אברהם"), Name.parse("שרה")])
-        for pair in result["pairs"]["nearMiss"]:
+        for pair in pair_group(result, "אברהם", "שרה")["nearMiss"]:
             assert pair["second"]["verse"] - pair["first"]["verse"] == 2
 
     def test_single_name_search_has_no_pairs_key(self, corpus):
         assert "pairs" not in search(corpus, [Name.parse("דוד")])
+
+    def test_two_names_produce_one_pair_group(self, corpus):
+        result = search(corpus, [Name.parse("אברהם"), Name.parse("שרה")])
+        assert len(result["pairs"]) == 1
+
+    def test_three_names_produce_every_combination(self, corpus):
+        names = [Name.parse(n) for n in ("אברהם", "יצחק", "יעקב")]
+        result = search(corpus, names)
+        assert result["query"]["mode"] == "multi"
+        assert len(result["pairs"]) == 3  # C(3,2)
+        raw = {n.raw for n in names}
+        seen = set()
+        for group in result["pairs"]:
+            pair = frozenset(group["names"])
+            assert pair not in seen  # each combination appears exactly once
+            seen.add(pair)
+            assert set(group["names"]) <= raw
+
+    def test_three_names_still_finds_a_known_pair(self, corpus):
+        """אברהם/שרה's one known consecutive pair still turns up among three names."""
+        names = [Name.parse(n) for n in ("אברהם", "שרה", "יצחק")]
+        result = search(corpus, names)
+        assert len(pair_group(result, "אברהם", "שרה")["consecutive"]) == 1
 
 
 class TestVerseShape:
@@ -228,9 +259,26 @@ class TestApi:
 
     def test_two_names(self, client):
         body = client.get("/api/search", params={"names": "אברהם, שרה"}).json()
-        assert body["query"]["mode"] == "pair"
+        assert body["query"]["mode"] == "multi"
         assert len(body["names"]) == 2
-        assert len(body["pairs"]["consecutive"]) == 1
+        assert len(body["pairs"]) == 1
+        assert len(body["pairs"][0]["consecutive"]) == 1
+
+    def test_three_names(self, client):
+        body = client.get("/api/search", params={"names": "אברהם, יצחק, יעקב"}).json()
+        assert body["query"]["mode"] == "multi"
+        assert len(body["names"]) == 3
+        assert len(body["pairs"]) == 3  # every duo among the three
+
+    def test_multi_word_name_without_a_comma_is_one_compound_name(self, client):
+        """'אסתר מלכה' (no comma) is a single name: first letter of the first
+        word, last letter of the last word -- not two separate names."""
+        body = client.get("/api/search", params={"names": "אסתר מלכה"}).json()
+        assert body["query"]["mode"] == "single"
+        assert len(body["names"]) == 1
+        entry = body["names"][0]
+        assert entry["first"] == "א"
+        assert entry["last"] == "ה"
 
     @pytest.mark.parametrize("separator", [",", "،", ";"])
     def test_accepted_separators(self, client, separator):
@@ -244,8 +292,8 @@ class TestApi:
         assert "עבריות" in body["error"]
         assert body["code"] == "invalid_name"
 
-    def test_three_names_are_rejected(self, client):
-        response = client.get("/api/search", params={"names": "אברהם, שרה, יצחק"})
+    def test_four_names_are_rejected(self, client):
+        response = client.get("/api/search", params={"names": "אברהם, שרה, יצחק, יעקב"})
         assert response.status_code == 400
         body = response.json()
         assert body["error"]
@@ -260,7 +308,7 @@ class TestApi:
         """The frontend keys its i18n error text off these exact strings."""
         assert client.get("/api/search", params={"names": "  ,  "}).json()["code"] == "empty"
         assert client.get("/api/search", params={"names": "David"}).json()["code"] == "invalid_name"
-        assert client.get("/api/search", params={"names": "א, ב, ג"}).json()["code"] == "too_many"
+        assert client.get("/api/search", params={"names": "א, ב, ג, ד"}).json()["code"] == "too_many"
 
     def test_random_verse_matches_the_name(self, client):
         body = client.get("/api/random", params={"name": "דוד"}).json()
