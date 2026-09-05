@@ -441,6 +441,12 @@
     }
   }
 
+  // The Tanakh has 24 books by the traditional count. The API reports 39,
+  // since Samuel, Kings, Ezra-Nehemiah, Chronicles and the Twelve Minor
+  // Prophets are each split across multiple files there -- an internal
+  // detail of how the text is stored, not something to show the user.
+  var TRADITIONAL_BOOK_COUNT = 24;
+
   function renderFooterCount() {
     var target = document.getElementById("verse-count");
     if (!lastHealth) {
@@ -449,7 +455,7 @@
     }
     target.textContent = t(locale, "footer.summary", {
       versesPhrase: plural(locale, "footer.verses", lastHealth.verses),
-      booksPhrase: plural(locale, "footer.books", lastHealth.books),
+      booksPhrase: plural(locale, "footer.books", TRADITIONAL_BOOK_COUNT),
     });
   }
 
