@@ -22,7 +22,7 @@ var I18N = (function () {
       "header.title": "פסוק לשם",
       "header.subtitle": "מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות",
 
-      "search.label": "שם, או שני שמות מופרדים בפסיק",
+      "search.label": "שם לחיפוש",
       "search.placeholder": "לדוגמא: {example}",
       "search.button": "חיפוש",
       "search.hint": "שם אחד או שני/שלושה שמות, מופרדים בפסיק.",
@@ -88,7 +88,7 @@ var I18N = (function () {
       "header.title": "A Verse for the Name",
       "header.subtitle": "Find Tanakh verses that begin and end with the letters of the name/names",
 
-      "search.label": "A name, or two names separated by a comma",
+      "search.label": "Name to search",
       "search.placeholder": "e.g. {example}",
       "search.button": "Search",
       "search.hint": "One name, or two/three names, separated by a comma.",
@@ -154,7 +154,7 @@ var I18N = (function () {
       "header.title": "Un verset pour le prénom",
       "header.subtitle": "Trouver les versets du Tanakh qui commencent et finissent par les lettres du prénom/des prénoms",
 
-      "search.label": "Un prénom, ou deux prénoms séparés par une virgule",
+      "search.label": "Prénom à rechercher",
       "search.placeholder": "par ex. {example}",
       "search.button": "Rechercher",
       "search.hint": "Un prénom, ou deux/trois prénoms, séparés par une virgule.",
