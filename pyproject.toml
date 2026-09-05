@@ -5,7 +5,7 @@
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "EXE"]
@@ -18,7 +18,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "EXE"]
 ignore = ["RUF001", "RUF002", "RUF003"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 # app/ has no __init__.py and is imported as a namespace package by uvicorn
 # (app.main:app). Without these, mypy cannot resolve the relative imports and

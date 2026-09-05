@@ -1,0 +1,41 @@
+# Keep Dependabot PRs flowing for the two ecosystems this repo uses. Group
+# weekly so we don't get one PR per tiny bump.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    # A FastAPI or uvicorn major is a migration, not routine upkeep, and needs a
+    # hand-driven branch.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      runtime:
+        patterns:
+          - "fastapi"
+          - "uvicorn*"
+          - "starlette"
+        update-types:
+          - minor
+          - patch
+      dev:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"

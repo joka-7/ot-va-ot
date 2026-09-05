@@ -177,8 +177,13 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
     """Download and shape a single book. Returns a dict ready for the dataset."""
     order, (section, book) = entry
     url = book_url(section, book)
+    # urlopen honours file:// and any custom scheme, so refuse anything but
+    # https before opening it. The URL is built from the BUCKET constant today,
+    # but that is a one-line edit away from not being true.
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing to fetch a non-https URL: {url}")
     try:
-        with urllib.request.urlopen(url, timeout=120) as response:
+        with urllib.request.urlopen(url, timeout=120) as response:  # nosec B310 - scheme checked above
             raw = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:  # pragma: no cover - network path
         raise SystemExit(f"failed to fetch {book}: HTTP {exc.code} for {url}") from exc
