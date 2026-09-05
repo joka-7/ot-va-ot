@@ -23,9 +23,9 @@ var I18N = (function () {
       "header.subtitle": "מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות",
 
       "search.label": "שם, או שני שמות מופרדים בפסיק",
-      "search.placeholder": "לדוגמה: {example}",
+      "search.placeholder": "לדוגמא: {example}",
       "search.button": "חיפוש",
-      "search.hint": "שם אחד, שני שמות או שלושה, מופרדים בפסיק.",
+      "search.hint": "שם אחד או שני/שלושה שמות, מופרדים בפסיק.",
       "search.examplesAriaLabel": "דוגמאות",
       "search.howTitle": "איך זה עובד?",
       "search.rule.noComma": "שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.",
@@ -91,7 +91,7 @@ var I18N = (function () {
       "search.label": "A name, or two names separated by a comma",
       "search.placeholder": "e.g. {example}",
       "search.button": "Search",
-      "search.hint": "One name, two, or three, separated by a comma.",
+      "search.hint": "One name, or two/three names, separated by a comma.",
       "search.examplesAriaLabel": "Examples",
       "search.howTitle": "How does this work?",
       "search.rule.noComma": "Names without a comma — the first letter of the first name, the last letter of the last name.",
@@ -157,7 +157,7 @@ var I18N = (function () {
       "search.label": "Un prénom, ou deux prénoms séparés par une virgule",
       "search.placeholder": "par ex. {example}",
       "search.button": "Rechercher",
-      "search.hint": "Un prénom, deux, ou trois, séparés par une virgule.",
+      "search.hint": "Un prénom, ou deux/trois prénoms, séparés par une virgule.",
       "search.examplesAriaLabel": "Exemples",
       "search.howTitle": "Comment ça marche ?",
       "search.rule.noComma": "Prénoms sans virgule — première lettre du premier prénom, dernière lettre du dernier prénom.",
@@ -216,7 +216,7 @@ var I18N = (function () {
 
   // A fixed, always-Hebrew example shown inside the search placeholder in
   // every locale -- the field itself only ever accepts Hebrew names.
-  var PLACEHOLDER_EXAMPLE = "אברהם, שרה";
+  var PLACEHOLDER_EXAMPLE = "אברהם, יצחק או שרה, רבקה";
 
   var LOCALES = ["he", "en", "fr"];
   var DEFAULT_LOCALE = "he";
