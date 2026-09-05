@@ -21,10 +21,17 @@ Three kinds of search, all of them working on the normalized forms that
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 
 from .corpus import Corpus, Verse
 from .hebrew import first_last, has_hebrew, letter_positions, mark_end, normalize, word_spans
+
+# A highlight span over a verse's text: {"start": int, "end": int, "kind": str}.
+Highlight = dict[str, int | str]
+# A JSON object shaped for the API response.
+Payload = dict[str, Any]
 
 # How many verses a single result group returns by default. The true total is
 # always reported alongside, so the client can say "showing 100 of 259".
@@ -63,21 +70,23 @@ class Name:
 # --- Highlighting ------------------------------------------------------------
 
 
-def letter_highlights(verse: Verse) -> list[dict]:
+def letter_highlights(verse: Verse) -> list[Highlight]:
     """Highlight the verse's first and last letters, marks included."""
     positions = letter_positions(verse.text)
     if not positions:
         return []
     first, last = positions[0], positions[-1]
-    highlights = [{"start": first, "end": mark_end(verse.text, first), "kind": "first"}]
+    highlights: list[Highlight] = [
+        {"start": first, "end": mark_end(verse.text, first), "kind": "first"}
+    ]
     if last != first:
         highlights.append({"start": last, "end": mark_end(verse.text, last), "kind": "last"})
     return highlights
 
 
-def name_highlights(verse: Verse, name: Name) -> list[dict]:
+def name_highlights(verse: Verse, name: Name) -> list[Highlight]:
     """Highlight every occurrence of the name inside the verse."""
-    highlights = []
+    highlights: list[Highlight] = []
     for word in word_spans(verse.text):
         span = word.span_of(name.normalized)
         if span:
@@ -88,7 +97,7 @@ def name_highlights(verse: Verse, name: Name) -> list[dict]:
     return highlights
 
 
-def serialize(verse: Verse, highlights: list[dict] | None = None) -> dict:
+def serialize(verse: Verse, highlights: list[Highlight] | None = None) -> Payload:
     """Shape a verse for the API.
 
     ``book`` carries all three languages so the client can label it without a
@@ -114,13 +123,13 @@ def serialize(verse: Verse, highlights: list[dict] | None = None) -> dict:
 # --- Single-name search ------------------------------------------------------
 
 
-def search_name(corpus: Corpus, name: Name, limit: int) -> dict:
+def search_name(corpus: Corpus, name: Name, limit: int) -> Payload:
     """Run all single-name searches for one name."""
     letter_ids = corpus.letter_matches(name.first, name.last)
     exact_ids = corpus.exact_word_matches(name.normalized)
     partial_ids = corpus.partial_word_matches(name.normalized)
 
-    def group(ids: list[int], highlighter) -> dict:
+    def group(ids: list[int], highlighter: Callable[[Verse], list[Highlight]]) -> Payload:
         """A result group: the verses shown, plus how many exist in total."""
         shown = [corpus.verses[i] for i in ids[:limit]]
         return {
@@ -141,7 +150,9 @@ def search_name(corpus: Corpus, name: Name, limit: int) -> dict:
 # --- Pair (consecutive-verse) search ----------------------------------------
 
 
-def find_pairs(corpus: Corpus, first_name: Name, second_name: Name, gap: int) -> list[dict]:
+def find_pairs(
+    corpus: Corpus, first_name: Name, second_name: Name, gap: int
+) -> list[Payload]:
     """Find verse N matching ``first_name`` and verse N+gap matching ``second_name``.
 
     ``gap`` of 1 means strictly consecutive verses; 2 leaves one verse between
@@ -170,7 +181,7 @@ def find_pairs(corpus: Corpus, first_name: Name, second_name: Name, gap: int) ->
     return results
 
 
-def build_pair_group(corpus: Corpus, name_a: Name, name_b: Name) -> dict:
+def build_pair_group(corpus: Corpus, name_a: Name, name_b: Name) -> Payload:
     """All pair-based results between two of the search's names."""
     return {
         "names": [name_a.raw, name_b.raw],
@@ -180,7 +191,7 @@ def build_pair_group(corpus: Corpus, name_a: Name, name_b: Name) -> dict:
     }
 
 
-def search_multi(corpus: Corpus, names: list[Name]) -> list[dict]:
+def search_multi(corpus: Corpus, names: list[Name]) -> list[Payload]:
     """A pair group for every unique combination of two of the given names.
 
     Two names -> one combination. Three names -> three (each possible duo).
@@ -194,7 +205,7 @@ def search_multi(corpus: Corpus, names: list[Name]) -> list[dict]:
 # --- Entry point -------------------------------------------------------------
 
 
-def search(corpus: Corpus, names: list[Name], limit: int = DEFAULT_LIMIT) -> dict:
+def search(corpus: Corpus, names: list[Name], limit: int = DEFAULT_LIMIT) -> Payload:
     """Run the full search for one, two, or three names."""
     limit = max(1, min(limit, MAX_LIMIT))
     result = {

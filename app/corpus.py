@@ -11,6 +11,7 @@ import functools
 import gzip
 import json
 from pathlib import Path
+from typing import Any
 
 from .hebrew import he_number, normalize, words
 
@@ -85,13 +86,13 @@ class Verse:
 class Corpus:
     """The full Tanakh plus the indexes the search relies on."""
 
-    def __init__(self, dataset: dict):
+    def __init__(self, dataset: dict[str, Any]):
         self.source: str = dataset["source"]
         self.version: str = dataset["version"]
         self.license: str = dataset["license"]
 
         self.verses: list[Verse] = []
-        self.books: list[dict] = []
+        self.books: list[dict[str, Any]] = []
 
         for book_index, book in enumerate(dataset["books"]):
             self.books.append(

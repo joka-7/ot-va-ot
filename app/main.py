@@ -8,10 +8,12 @@ share a host, so a phone browser never sees a cross-origin request.
 from __future__ import annotations
 
 import random
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -24,7 +26,7 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 SEPARATORS = ",،;"
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Load and index the corpus at boot, rather than on the first request.
 
     Roughly 1.5 seconds of work that would otherwise land on whoever searches
@@ -44,7 +46,9 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def no_cache_static_assets(request, call_next):
+async def no_cache_static_assets(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
     """Force revalidation on every load of the page and its static assets.
 
     static/*.js and static/*.css have no cache-busting in their URLs -- they
@@ -66,7 +70,7 @@ async def no_cache_static_assets(request, call_next):
     return response
 
 
-def error(code: str, message: str) -> dict:
+def error(code: str, message: str) -> dict[str, Any]:
     """An HTTPException detail carrying both a Hebrew message, for a direct API
     caller, and a stable machine-readable code the frontend can localize into
     whichever of Hebrew/English/French the UI is currently showing.
@@ -97,7 +101,7 @@ def parse_names(raw: str) -> list[Name]:
 
 
 @app.get("/api/health")
-def health() -> dict:
+def health() -> dict[str, Any]:
     """Liveness check that also reports what corpus is loaded."""
     corpus = load_corpus()
     return {
@@ -114,13 +118,13 @@ def health() -> dict:
 def search_endpoint(
     names: str = Query(..., description="One name, or two separated by a comma"),
     limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
-) -> dict:
+) -> dict[str, Any]:
     """Search the Tanakh for verses matching one or two names."""
     return search(load_corpus(), parse_names(names), limit=limit)
 
 
 @app.get("/api/random")
-def random_endpoint(name: str = Query(..., description="A single name")) -> dict:
+def random_endpoint(name: str = Query(..., description="A single name")) -> dict[str, Any]:
     """One random verse whose first and last letters match the name.
 
     Used by the UI's empty state to show the custom in action.
@@ -135,7 +139,7 @@ def random_endpoint(name: str = Query(..., description="A single name")) -> dict
 
 
 @app.exception_handler(HTTPException)
-def http_exception_handler(request, exc: HTTPException) -> JSONResponse:
+def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Return errors as {"error": "<hebrew message>", "code": "<stable code>"}.
 
     ``error`` is kept as a plain Hebrew string for a direct API caller (and for
