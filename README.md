@@ -292,15 +292,41 @@ serverless, so the 1.5 s corpus load would run on cold starts.
 
 ## Layout
 
+The tree below is **generated** — refresh it with
+`python .ai/skills/repo_tree/gen_tree.py --project . --output README.md --max-depth 1`,
+and never edit between the markers by hand. CI fails on drift.
+
+<!-- BEGIN GENERATED TREE (depth=1 entries=all) -->
+```text
+ot-va-ot/
+├── .github/
+├── app/
+├── data/
+├── docs/
+├── scripts/
+├── static/
+├── tests/
+├── .ai
+├── .gitignore
+├── .gitmodules
+├── AGENTS.md  # AGENTS.md
+├── CLAUDE.md  # AGENTS.md
+├── Dockerfile
+├── GEMINI.md  # AGENTS.md
+├── LICENSE
+├── README.md  # פסוק לשם — Tanakh verses for a name
+├── ai-config.toml
+├── pyproject.toml
+├── pytest.ini
+├── render.yaml
+├── requirements-dev.txt
+└── requirements.txt
 ```
-app/hebrew.py           normalization, offsets, Hebrew numerals  (no deps)
-app/corpus.py           gzip load + the two search indexes
-app/search.py           letter match, name-in-verse, pairs, highlighting
-app/main.py             FastAPI routes; mounts static/ at "/"
-scripts/build_dataset.py   Sefaria export -> data/tanakh.json.gz (build-time)
-static/                 the UI: one page, one stylesheet, one script
-tests/                  pytest, against the real corpus
-```
+<!-- END GENERATED TREE -->
+
+Full annotated tree: [`docs/STRUCTURE.md`](docs/STRUCTURE.md). Design docs:
+[`docs/HLD.md`](docs/HLD.md) (what it is and how a request flows) and
+[`docs/LLD.md`](docs/LLD.md) (per-module contracts and response shapes).
 
 ## Notes
 

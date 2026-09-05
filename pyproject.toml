@@ -6,6 +6,10 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# .ai is the ogen-ai submodule -- vendored config, not this repo's source. Left
+# in, ruff lints it and reports findings nobody here can fix, against a
+# different project's conventions.
+extend-exclude = [".ai"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "EXE"]
