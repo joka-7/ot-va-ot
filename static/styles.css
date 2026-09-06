@@ -257,47 +257,40 @@ body {
   50%      { opacity: 1;   transform: scale(1); }
 }
 
-/* --- Install banner --- */
-
-.install-banner {
+/* --- Install button ---
+   Lives inside the header's own flex column instead of as a separate bar
+   between <header> and <main>. A sibling bar there sits exactly where
+   .search's negative margin-top expects to find the header's bottom edge
+   (see .search above), which took a dedicated CSS rule to cancel whenever
+   the bar was showing -- and that bar (icon + a full sentence + two
+   buttons, wrapping across two lines on a narrow phone) was also just a
+   lot of moving parts for what is, at the end of the day, one button.
+   Inside the header, showing or hiding it only changes the header's own
+   height, the same as any other line of header content -- no interaction
+   with .search at all. */
+.install-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: .4rem .6rem;
-  background: var(--accent-soft);
-  border-bottom: 1px solid var(--accent);
-  color: var(--text);
-  font-size: .85rem;
-  padding: .6rem max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
+  gap: .5rem;
+  margin-top: .9rem;
 }
-/* .search's margin-top: -1.25rem exists to lift the card over <header>'s own
-   bottom edge. When the banner is showing, it -- not the header -- is the
-   element directly above .search, so that negative margin has to drop out
-   here or it pulls the card up over the banner instead. Scoped to exactly
-   this case (banner visible) via the :not([hidden]) + general-sibling
-   selector, so the header/search overlap is untouched the rest of the time. */
-#install-banner:not([hidden]) ~ main .search {
-  margin-top: 0;
-}
-.install-icon { flex: 0 0 auto; font-size: 1rem; }
-.install-text { flex: 1 1 auto; }
 .install-btn {
-  flex: 0 0 auto;
-  font: 700 .82rem var(--font);
-  color: #fff;
-  background: var(--accent);
+  font: 700 .85rem var(--font);
+  color: var(--accent-text);
+  background: #fff;
   border: 0;
   border-radius: var(--radius-sm);
-  padding: .4rem .8rem;
+  padding: .5rem 1rem;
   min-height: 44px;
   touch-action: manipulation;
   cursor: pointer;
 }
+.install-btn[disabled] { opacity: .85; cursor: default; }
 .install-dismiss {
-  flex: 0 0 auto;
   font-size: 1rem;
   line-height: 1;
-  color: var(--text-faint);
+  color: #fff;
+  opacity: .75;
   background: transparent;
   border: 0;
   padding: .3rem;
