@@ -27,9 +27,14 @@ ot-va-ot/
 ├── scripts/
 │   └── build_dataset.py         # Build the local Tanakh dataset used by the app.
 ├── static/
+│   ├── icons/
+│   │   ├── apple-touch-icon.png
+│   │   ├── icon-192.png
+│   │   └── icon-512.png
 │   ├── app.js
 │   ├── i18n.js
 │   ├── index.html
+│   ├── manifest.json
 │   └── styles.css
 ├── tests/
 │   ├── test_hebrew.py           # Tests for the Hebrew normalization primitives.
