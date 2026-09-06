@@ -262,12 +262,15 @@ body {
 .install-banner {
   display: flex;
   align-items: center;
-  gap: .6rem;
+  flex-wrap: wrap;
+  gap: .4rem .6rem;
   background: var(--accent-soft);
   border-bottom: 1px solid var(--accent);
   color: var(--text);
   font-size: .85rem;
-  padding: .6rem max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
+  /* Sits above <header> now (not below it), so it -- not the header -- is
+     the element that needs to clear the notch/status bar. */
+  padding: max(.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
 }
 .install-icon { flex: 0 0 auto; font-size: 1rem; }
 .install-text { flex: 1 1 auto; }
