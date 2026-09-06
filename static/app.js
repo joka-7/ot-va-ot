@@ -575,7 +575,10 @@
 
   // --- App install (Add to Home Screen) -----------------------------------
 
-  var INSTALL_DISMISSED_KEY = "pasuk-leshem:install-dismissed";
+  // Bumped (v2) to give everyone a clean slate -- rules out a stale
+  // dismissal saved during earlier debugging as the cause of the banner
+  // no longer appearing.
+  var INSTALL_DISMISSED_KEY = "pasuk-leshem:install-dismissed:v2";
   var deferredInstallPrompt = null;
 
   function isStandalone() {
