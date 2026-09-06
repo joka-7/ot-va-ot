@@ -257,6 +257,44 @@ body {
   50%      { opacity: 1;   transform: scale(1); }
 }
 
+/* --- Install banner --- */
+
+.install-banner {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--accent);
+  color: var(--text);
+  font-size: .85rem;
+  padding: .6rem max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
+}
+.install-icon { flex: 0 0 auto; font-size: 1rem; }
+.install-text { flex: 1 1 auto; }
+.install-btn {
+  flex: 0 0 auto;
+  font: 700 .82rem var(--font);
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: .4rem .8rem;
+  min-height: 34px;
+  cursor: pointer;
+}
+.install-dismiss {
+  flex: 0 0 auto;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  padding: .3rem;
+  min-width: 30px;
+  min-height: 30px;
+  cursor: pointer;
+}
+
 /* --- Result groups --- */
 
 .results { margin-top: 1.5rem; }

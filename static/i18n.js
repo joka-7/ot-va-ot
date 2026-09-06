@@ -94,6 +94,11 @@ var I18N = (function () {
       "footer.credit": "נבנה על ידי",
       "footer.verses": { one: "פסוק אחד", two: "שני פסוקים", other: "{n} פסוקים" },
       "footer.books": { one: "ספר אחד", two: "שני ספרים", other: "{n} ספרים" },
+
+      "install.prompt": "התקינו את האפליקציה למסך הבית לגישה מהירה",
+      "install.button": "התקנה",
+      "install.dismiss": "סגור",
+      "install.iosHint": "כדי להתקין: הקישו על כפתור השיתוף, ואז \"הוסף למסך הבית\".",
     },
 
     en: {
@@ -167,6 +172,11 @@ var I18N = (function () {
       "footer.credit": "Built by",
       "footer.verses": { one: "1 verse", other: "{n} verses" },
       "footer.books": { one: "1 book", other: "{n} books" },
+
+      "install.prompt": "Install the app on your home screen for quick access",
+      "install.button": "Install",
+      "install.dismiss": "Dismiss",
+      "install.iosHint": "To install: tap the Share button, then \"Add to Home Screen\".",
     },
 
     fr: {
@@ -240,6 +250,11 @@ var I18N = (function () {
       "footer.credit": "Créé par",
       "footer.verses": { one: "1 verset", other: "{n} versets" },
       "footer.books": { one: "1 livre", other: "{n} livres" },
+
+      "install.prompt": "Installez l'application sur votre écran d'accueil pour un accès rapide",
+      "install.button": "Installer",
+      "install.dismiss": "Fermer",
+      "install.iosHint": "Pour installer : appuyez sur le bouton Partager, puis « Sur l'écran d'accueil ».",
     },
   };
 
