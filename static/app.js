@@ -431,6 +431,7 @@
     input.placeholder = t(locale, "search.placeholder", { example: I18N.PLACEHOLDER_EXAMPLE });
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
+    document.getElementById("footer-about-content").innerHTML = t(locale, "footer.aboutHtml");
     renderFooterCount();
 
     var buttons = langSwitch.querySelectorAll(".lang-btn");

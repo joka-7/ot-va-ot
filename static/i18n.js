@@ -5,11 +5,15 @@
  * Tanakh verse text itself is never translated -- it stays in Hebrew in every
  * locale, same as the tradition it comes from. So does the verse citation
  * (e.g. "בראשית א׳:ה׳"), which keeps its Hebrew gematria numerals regardless
- * of the UI language. The footer's "more about this custom" disclosure
- * (static/index.html, .footer-about) is the same exception applied to prose:
- * only its summary toggle is translated here -- the explanation itself
- * quotes specific liturgical phrases and named halachic sources, so it stays
- * in Hebrew rather than risk a paraphrase drifting from them.
+ * of the UI language.
+ *
+ * The footer's "more about this custom" disclosure (footer.aboutHtml, set as
+ * innerHTML the same way footer.attributionHtml is) is translated content,
+ * unlike the verse text -- but it names specific liturgical phrases and
+ * halachic sources, so the en/fr versions keep those as transliterations
+ * ("Elokai Netzor", "the Shelah", "Rabbi Chaim Kanievsky") alongside the
+ * translation rather than substituting a looser paraphrase. Keep the en/fr
+ * entries in lockstep with the Hebrew if this text changes.
  *
  * Loaded before app.js, which owns the interpolation and DOM wiring; this
  * file only holds data and locale-formatting helpers.
@@ -81,6 +85,12 @@ var I18N = (function () {
         " (מקור: tanach.us), נחלת הכלל.",
       "footer.custom": "המנהג: בסוף תפילת העמידה אומרים פסוק המתחיל באות הראשונה של השם ומסתיים באות האחרונה שלו.",
       "footer.aboutTitle": "עוד על המנהג",
+      "footer.aboutHtml":
+        "<p>מציבים בסוף התפילה פסוק מהתנ\"ך שמתחיל באות הראשונה של שמו של המתפלל ומסתיים באות האחרונה של שמו. לחלופין, יש הנוהגים לומר פסוק שבו השם שלהם מוזכר במפורש.</p>" +
+        "<p><strong>מיקום האמירה:</strong> נהוג לומר את הפסוק בסוף תפילת עמידה, בקטע של \"אלוקי נצור לשוני מרע\", מיד לפני אמירת פסוק \"יהיו לרצון אמרי פי...\" השני (הפסוק שנאמר רגע לפני שפוסעים שלושה צעדים לאחור).</p>" +
+        "<p><strong>מקור המנהג:</strong> המקור הקדום ביותר מופיע כתוספת מאוחרת בפירוש רש\"י לספר מיכה (על הפסוק \"ותוּשִׁיָּה יִרְאֶה שְׁמֶךָ\"). המנהג התפרסם והתפשט מאוד בזכות השל\"ה הקדוש (רבי ישעיה הלוי הורוביץ), שהביא אותו בספרו.</p>" +
+        "<p><strong>טעם המנהג:</strong> על פי תורת הסוד, כאשר אדם נפטר ומגיע לבית דין של מעלה, מלאכי הדין שואלים אותו מה שמו. מרוב הבהלה והפחד של יום הדין, הרשעים שוכחים את שמם. האמירה היומיומית של הפסוק הקשור לשם האדם בתפילה, מהווה סגולה לכך שהאדם לא ישכח את שמו ליום הדין.</p>" +
+        "<p><strong>שני שמות או יותר:</strong> מי שיש לו שני שמות, נהגו רבים לומר פסוק נפרד לכל אחד מהשמות. מנהג נוסף (כפי שהורה הרב חיים קנייבסקי) הוא לומר בנוסף פסוק המתחיל באות הראשונה של השם הראשון ומסתיים באות האחרונה של השם השני.</p>",
       "footer.credit": "נבנה על ידי",
       "footer.verses": { one: "פסוק אחד", two: "שני פסוקים", other: "{n} פסוקים" },
       "footer.books": { one: "ספר אחד", two: "שני ספרים", other: "{n} ספרים" },
@@ -147,7 +157,13 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source: tanach.us), Public Domain.",
       "footer.custom": "The custom: at the end of the Amidah, one recites a verse that begins with the first letter of one's name and ends with its last letter.",
-      "footer.aboutTitle": "More about this custom (in Hebrew)",
+      "footer.aboutTitle": "More about this custom",
+      "footer.aboutHtml":
+        "<p>At the end of the prayer, one places a verse from the Tanakh that begins with the first letter of the worshipper's name and ends with the last letter of their name. Alternatively, some have the custom of saying a verse in which their name is mentioned explicitly.</p>" +
+        "<p><strong>Where it's said:</strong> It is customary to say the verse at the end of the Amidah, in the passage of \"Elokai Netzor Leshoni Mera\" (\"My God, guard my tongue from evil\"), immediately before the second recitation of \"Yihyu Leratzon Imrei Fi...\" (\"May the words of my mouth be pleasing...\") — the verse said just before taking three steps back.</p>" +
+        "<p><strong>Source of the custom:</strong> The earliest source appears as a later addition to Rashi's commentary on the book of Micah (on the verse \"U'tushiyah Yireh Shemecha\"). The custom became widely known mainly thanks to the holy Shelah (Rabbi Yeshayahu HaLevi Horowitz), who brought it in his book.</p>" +
+        "<p><strong>Reason for the custom:</strong> According to Kabbalistic teaching, when a person passes away and reaches the heavenly court, the angels of judgment ask for their name. In the panic and fear of the Day of Judgment, the wicked forget their own name. Saying the verse tied to one's name daily in prayer is a segulah (a spiritual remedy) so that the person will not forget their name on the Day of Judgment.</p>" +
+        "<p><strong>Two names or more:</strong> Someone with two names customarily says a separate verse for each name. Another custom (as instructed by Rabbi Chaim Kanievsky) is to also say a verse that begins with the first letter of the first name and ends with the last letter of the second name.</p>",
       "footer.credit": "Built by",
       "footer.verses": { one: "1 verse", other: "{n} verses" },
       "footer.books": { one: "1 book", other: "{n} books" },
@@ -214,7 +230,13 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source : tanach.us), domaine public.",
       "footer.custom": "La coutume : à la fin de l'Amida, on récite un verset qui commence par la première lettre de son prénom et finit par sa dernière lettre.",
-      "footer.aboutTitle": "En savoir plus sur cette coutume (en hébreu)",
+      "footer.aboutTitle": "En savoir plus sur cette coutume",
+      "footer.aboutHtml":
+        "<p>On place à la fin de la prière un verset du Tanakh qui commence par la première lettre du prénom de celui qui prie et se termine par la dernière lettre de son prénom. Autrement, certains ont l'usage de réciter un verset où leur prénom est mentionné explicitement.</p>" +
+        "<p><strong>Où on le récite :</strong> il est d'usage de réciter ce verset à la fin de l'Amida, dans le passage de « Elokaï Netsor Lechoni Méra » (« Mon Dieu, garde ma langue du mal »), juste avant la seconde récitation du verset « Yihyou Leratsone Imré Phi... » (« Que les paroles de ma bouche soient agréables... »), le verset dit juste avant de reculer de trois pas.</p>" +
+        "<p><strong>Origine de la coutume :</strong> la source la plus ancienne apparaît comme un ajout tardif au commentaire de Rachi sur le livre de Michée (sur le verset « Outouchiya Yiré Chémécha »). La coutume s'est répandue surtout grâce au saint Chela (Rabbi Yeshaya HaLévi Horowitz), qui l'a rapportée dans son livre.</p>" +
+        "<p><strong>Raison de la coutume :</strong> selon l'enseignement kabbalistique, lorsqu'une personne décède et se présente devant le tribunal céleste, les anges du jugement lui demandent son nom. Dans la panique et la peur du jour du Jugement, les impies oublient leur propre nom. Réciter chaque jour, dans la prière, le verset lié à son prénom, constitue une segoula (un moyen spirituel) pour ne pas oublier son nom au jour du Jugement.</p>" +
+        "<p><strong>Deux prénoms ou plus :</strong> celui qui porte deux prénoms a, selon un usage répandu, l'habitude de réciter un verset séparé pour chacun des deux prénoms. Un autre usage (tel qu'enseigné par le Rav Chaïm Kanievsky) consiste à réciter en plus un verset qui commence par la première lettre du premier prénom et se termine par la dernière lettre du second prénom.</p>",
       "footer.credit": "Créé par",
       "footer.verses": { one: "1 verset", other: "{n} versets" },
       "footer.books": { one: "1 livre", other: "{n} livres" },
