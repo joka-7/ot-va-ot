@@ -5,7 +5,11 @@
  * Tanakh verse text itself is never translated -- it stays in Hebrew in every
  * locale, same as the tradition it comes from. So does the verse citation
  * (e.g. "בראשית א׳:ה׳"), which keeps its Hebrew gematria numerals regardless
- * of the UI language.
+ * of the UI language. The footer's "more about this custom" disclosure
+ * (static/index.html, .footer-about) is the same exception applied to prose:
+ * only its summary toggle is translated here -- the explanation itself
+ * quotes specific liturgical phrases and named halachic sources, so it stays
+ * in Hebrew rather than risk a paraphrase drifting from them.
  *
  * Loaded before app.js, which owns the interpolation and DOM wiring; this
  * file only holds data and locale-formatting helpers.
@@ -76,6 +80,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (מקור: tanach.us), נחלת הכלל.",
       "footer.custom": "המנהג: בסוף תפילת העמידה אומרים פסוק המתחיל באות הראשונה של השם ומסתיים באות האחרונה שלו.",
+      "footer.aboutTitle": "עוד על המנהג",
       "footer.credit": "נבנה על ידי",
       "footer.verses": { one: "פסוק אחד", two: "שני פסוקים", other: "{n} פסוקים" },
       "footer.books": { one: "ספר אחד", two: "שני ספרים", other: "{n} ספרים" },
@@ -142,6 +147,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source: tanach.us), Public Domain.",
       "footer.custom": "The custom: at the end of the Amidah, one recites a verse that begins with the first letter of one's name and ends with its last letter.",
+      "footer.aboutTitle": "More about this custom (in Hebrew)",
       "footer.credit": "Built by",
       "footer.verses": { one: "1 verse", other: "{n} verses" },
       "footer.books": { one: "1 book", other: "{n} books" },
@@ -208,6 +214,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source : tanach.us), domaine public.",
       "footer.custom": "La coutume : à la fin de l'Amida, on récite un verset qui commence par la première lettre de son prénom et finit par sa dernière lettre.",
+      "footer.aboutTitle": "En savoir plus sur cette coutume (en hébreu)",
       "footer.credit": "Créé par",
       "footer.verses": { one: "1 verset", other: "{n} versets" },
       "footer.books": { one: "1 livre", other: "{n} livres" },
