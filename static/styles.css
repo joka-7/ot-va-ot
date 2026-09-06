@@ -260,8 +260,6 @@ body {
 /* --- Install banner --- */
 
 .install-banner {
-  position: relative;
-  z-index: 2;   /* above .search's own z-index: 1, so its buttons are never intercepted */
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -270,9 +268,16 @@ body {
   border-bottom: 1px solid var(--accent);
   color: var(--text);
   font-size: .85rem;
-  /* Sits above <header> now (not below it), so it -- not the header -- is
-     the element that needs to clear the notch/status bar. */
-  padding: max(.6rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
+  padding: .6rem max(1rem, env(safe-area-inset-right)) .6rem max(1rem, env(safe-area-inset-left));
+}
+/* .search's margin-top: -1.25rem exists to lift the card over <header>'s own
+   bottom edge. When the banner is showing, it -- not the header -- is the
+   element directly above .search, so that negative margin has to drop out
+   here or it pulls the card up over the banner instead. Scoped to exactly
+   this case (banner visible) via the :not([hidden]) + general-sibling
+   selector, so the header/search overlap is untouched the rest of the time. */
+#install-banner:not([hidden]) ~ main .search {
+  margin-top: 0;
 }
 .install-icon { flex: 0 0 auto; font-size: 1rem; }
 .install-text { flex: 1 1 auto; }
