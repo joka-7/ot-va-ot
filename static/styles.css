@@ -260,6 +260,8 @@ body {
 /* --- Install banner --- */
 
 .install-banner {
+  position: relative;
+  z-index: 2;   /* above .search's own z-index: 1, so its buttons are never intercepted */
   display: flex;
   align-items: center;
   flex-wrap: wrap;
