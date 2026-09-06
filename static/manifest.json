@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "פסוק לשם — A Verse for the Name",
+  "short_name": "פסוק לשם",
+  "description": "מציאת פסוק בתנ״ך המתחיל ומסתיים באותיות השם, לפי המנהג לומר פסוק לשם בסוף תפילת העמידה.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f4ef",
+  "theme_color": "#1f6f5c",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
