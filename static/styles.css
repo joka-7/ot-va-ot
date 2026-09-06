@@ -501,6 +501,13 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 #footer-attribution { margin-bottom: .2rem; }
 #verse-count { margin-top: 0; }
 .footer-note { margin-bottom: 0; }
+.footer-about {
+  margin: .6rem auto 0;
+  max-width: 34rem;
+  text-align: start;
+}
+.footer-about summary { text-align: center; }
+.footer-about p { line-height: 1.5; }
 .footer-credit {
   margin-top: .9rem;
   margin-bottom: 0;
