@@ -127,6 +127,46 @@ body {
   font-weight: 700;
 }
 
+/* --- Install icon button ---
+   Fixed to the same physical corner regardless of scroll position or
+   locale direction, and its own stacking context -- deliberately outside
+   the header (see the HTML comment above the button in index.html for
+   why). Shown as soon as the page isn't already running standalone (see
+   app.js); every tap does something, so there's no dead-looking no-op
+   state to debug on a device we can't reproduce a problem on. */
+
+.install-fab {
+  position: fixed;
+  top: max(.65rem, env(safe-area-inset-top));
+  right: max(.65rem, env(safe-area-inset-right));
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .5);
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.install-fab:not([hidden]) { display: flex; }
+.install-fab svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
 /* --- Search --- */
 
 .search {
@@ -173,7 +213,8 @@ body {
 .submit:focus-visible,
 .chip:focus-visible,
 .copy:focus-visible,
-.more:focus-visible {
+.more:focus-visible,
+.install-fab:focus-visible {
   outline: 2.5px solid var(--accent);
   outline-offset: 2px;
 }
