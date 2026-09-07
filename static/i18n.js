@@ -98,6 +98,7 @@ var I18N = (function () {
       "install.button": "התקנה",
       "install.dismiss": "סגור",
       "install.iosHint": "כדי להתקין: הקישו על כפתור השיתוף, ואז \"הוסף למסך הבית\".",
+      "install.unavailable": "ההתקנה לא זמינה כרגע. רעננו את הדף ונסו שוב.",
     },
 
     en: {
@@ -175,6 +176,7 @@ var I18N = (function () {
       "install.button": "Install",
       "install.dismiss": "Dismiss",
       "install.iosHint": "To install: tap the Share button, then \"Add to Home Screen\".",
+      "install.unavailable": "Install isn't available right now. Reload the page and try again.",
     },
 
     fr: {
@@ -252,6 +254,7 @@ var I18N = (function () {
       "install.button": "Installer",
       "install.dismiss": "Fermer",
       "install.iosHint": "Pour installer : appuyez sur le bouton Partager, puis « Sur l'écran d'accueil ».",
+      "install.unavailable": "L'installation n'est pas disponible pour le moment. Rechargez la page et réessayez.",
     },
   };
 

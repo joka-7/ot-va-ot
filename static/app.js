@@ -626,11 +626,22 @@
     if (deferredInstallPrompt) {
       var promptEvent = deferredInstallPrompt;
       deferredInstallPrompt = null;
-      installBanner.hidden = true;
-      promptEvent.prompt();
+      // Wait for the native prompt to actually resolve before hiding our
+      // own button -- if the browser rejects it (e.g. too much time has
+      // passed since the event fired) the click otherwise looks like it
+      // did nothing at all, banner gone and no dialog shown.
+      promptEvent.prompt().then(
+        function () { installBanner.hidden = true; },
+        function () { toast(t(locale, "install.unavailable")); }
+      );
     } else if (isIOS()) {
       installBtn.textContent = t(locale, "install.iosHint");
       installBtn.disabled = true;
+    } else {
+      // No deferred prompt on a non-iOS browser: beforeinstallprompt either
+      // hasn't fired yet or Chrome has stopped offering it for this site.
+      // Say so instead of the click silently doing nothing.
+      toast(t(locale, "install.unavailable"));
     }
   });
 
