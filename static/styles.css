@@ -257,49 +257,6 @@ body {
   50%      { opacity: 1;   transform: scale(1); }
 }
 
-/* --- Install button ---
-   Lives inside the header's own flex column instead of as a separate bar
-   between <header> and <main>. A sibling bar there sits exactly where
-   .search's negative margin-top expects to find the header's bottom edge
-   (see .search above), which took a dedicated CSS rule to cancel whenever
-   the bar was showing -- and that bar (icon + a full sentence + two
-   buttons, wrapping across two lines on a narrow phone) was also just a
-   lot of moving parts for what is, at the end of the day, one button.
-   Inside the header, showing or hiding it only changes the header's own
-   height, the same as any other line of header content -- no interaction
-   with .search at all. */
-.install-row {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  margin-top: .9rem;
-}
-.install-btn {
-  font: 700 .85rem var(--font);
-  color: var(--accent-text);
-  background: #fff;
-  border: 0;
-  border-radius: var(--radius-sm);
-  padding: .5rem 1rem;
-  min-height: 44px;
-  touch-action: manipulation;
-  cursor: pointer;
-}
-.install-btn[disabled] { opacity: .85; cursor: default; }
-.install-dismiss {
-  font-size: 1rem;
-  line-height: 1;
-  color: #fff;
-  opacity: .75;
-  background: transparent;
-  border: 0;
-  padding: .3rem;
-  min-width: 44px;
-  min-height: 44px;
-  touch-action: manipulation;
-  cursor: pointer;
-}
-
 /* --- Result groups --- */
 
 .results { margin-top: 1.5rem; }
