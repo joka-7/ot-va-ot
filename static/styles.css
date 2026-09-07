@@ -127,6 +127,32 @@ body {
   font-weight: 700;
 }
 
+/* --- Install button ---
+   Hidden by default (see index.html); app.js reveals it once the browser
+   fires beforeinstallprompt (Android/desktop Chrome) or, on iOS Safari
+   (which never fires that event), whenever the page isn't already running
+   standalone -- there it opens a short "how to add to home screen" hint
+   instead of a native prompt. */
+
+.install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font: 600 .8rem var(--font);
+  color: #fff;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .4);
+  border-radius: 999px;
+  padding: .35rem .85rem;
+  min-height: 32px;
+  margin-bottom: .9rem;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.install-btn:hover { background: rgba(255, 255, 255, .28); }
+.install-btn:active { transform: scale(.97); }
+.install-icon { font-size: .95em; line-height: 1; }
+
 /* --- Search --- */
 
 .search {
@@ -173,7 +199,8 @@ body {
 .submit:focus-visible,
 .chip:focus-visible,
 .copy:focus-visible,
-.more:focus-visible {
+.more:focus-visible,
+.install-btn:focus-visible {
   outline: 2.5px solid var(--accent);
   outline-offset: 2px;
 }

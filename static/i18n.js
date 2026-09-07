@@ -35,6 +35,9 @@ var I18N = (function () {
       "search.rule.noComma": "שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.",
       "search.rule.withComma": "שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.",
 
+      "install.button": "התקנה",
+      "install.iosHint": "כדי להתקין: הקישו על כפתור השיתוף ↗ בסרגל הכלים, ואז \"הוסף למסך הבית\".",
+
       "waking.message": "מעיר את השרת… בפעם הראשונה אחרי זמן מנוחה זה עלול לקחת כדקה.",
 
       "badge.chapter": "פרק {n}",
@@ -102,6 +105,9 @@ var I18N = (function () {
       "search.rule.noComma": "Names without a comma — the first letter of the first name, the last letter of the last name.",
       "search.rule.withComma": "Names with a comma — search for consecutive verses of the names.",
 
+      "install.button": "Install",
+      "install.iosHint": "To install: tap the Share button ↗ in the toolbar, then \"Add to Home Screen\".",
+
       "waking.message": "Waking up the server… the first request after a while can take up to a minute.",
 
       "badge.chapter": "Chapter {n}",
@@ -168,6 +174,9 @@ var I18N = (function () {
       "search.howTitle": "Comment ça marche ?",
       "search.rule.noComma": "Prénoms sans virgule — première lettre du premier prénom, dernière lettre du dernier prénom.",
       "search.rule.withComma": "Prénoms avec une virgule — recherche de versets consécutifs des prénoms.",
+
+      "install.button": "Installer",
+      "install.iosHint": "Pour installer : appuyez sur le bouton Partager ↗ dans la barre d'outils, puis « Sur l'écran d'accueil ».",
 
       "waking.message": "Réveil du serveur… la première requête après une pause peut prendre jusqu'à une minute.",
 

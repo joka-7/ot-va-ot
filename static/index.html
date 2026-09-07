@@ -13,6 +13,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="פסוק לשם">
 </head>
 <body>
   <header class="header">
@@ -22,6 +28,10 @@
         <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
         <button type="button" class="lang-btn" data-lang="fr" lang="fr">Français</button>
       </div>
+      <button type="button" class="install-btn" id="install-btn" hidden>
+        <span class="install-icon" aria-hidden="true">⬇</span>
+        <span data-i18n="install.button">התקנה</span>
+      </button>
       <h1 class="title" data-i18n="header.title">פסוק לשם</h1>
       <p class="subtitle" data-i18n="header.subtitle">מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות</p>
     </div>

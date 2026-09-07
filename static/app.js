@@ -26,6 +26,7 @@
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
   var langSwitch = document.getElementById("lang-switch");
+  var installBtn = document.getElementById("install-btn");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -473,6 +474,55 @@
     var button = event.target.closest(".lang-btn");
     if (button) setLocale(button.dataset.lang);
   });
+
+  // --- Install prompt (Add to Home Screen) --------------------------------
+  //
+  // Chrome/Android (and desktop Chrome/Edge) fire `beforeinstallprompt`
+  // themselves when the page qualifies (manifest + service worker); we just
+  // hold onto that event and replay it on the button's own click, since the
+  // browser's own mini-infobar is easy to miss on a phone. iOS Safari never
+  // fires that event at all -- there, tapping the button just explains the
+  // manual Share-sheet steps instead of triggering anything.
+
+  var deferredInstallPrompt = null;
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  if (!isStandalone() && isIOS()) installBtn.hidden = false;
+
+  window.addEventListener("beforeinstallprompt", function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    if (!isStandalone()) installBtn.hidden = false;
+  });
+
+  installBtn.addEventListener("click", function () {
+    if (deferredInstallPrompt) {
+      var prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      installBtn.hidden = true;
+      prompt.prompt();
+    } else if (isIOS()) {
+      toast(t(locale, "install.iosHint"));
+    }
+  });
+
+  window.addEventListener("appinstalled", function () {
+    installBtn.hidden = true;
+    deferredInstallPrompt = null;
+  });
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () { /* installability just degrades gracefully */ });
+    });
+  }
 
   // --- Searching -------------------------------------------------------------
 
