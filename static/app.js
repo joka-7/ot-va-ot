@@ -568,6 +568,9 @@
     .then(function (health) {
       lastHealth = health;
       renderFooterCount();
+      // Not localized -- this is a plain diagnostic (which commit is
+      // actually deployed), not user-facing copy.
+      document.getElementById("footer-build").textContent = "build " + health.commit;
     })
     .catch(function () { /* the footer count is decorative */ })
     .then(disarmHealthWaking);

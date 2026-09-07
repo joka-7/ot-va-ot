@@ -559,6 +559,9 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .footer-credit a { color: var(--text-faint); text-decoration: underline; }
 .footer-credit a:hover { color: var(--accent-text); }
+/* Which commit is actually running, plain and unambiguous -- so "is this
+   fix even deployed yet" is a glance at the page, not a guess. */
+.footer-build { margin-top: .4rem; margin-bottom: 0; font-size: .65rem; opacity: .6; direction: ltr; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
