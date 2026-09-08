@@ -7,7 +7,6 @@ share a host, so a phone browser never sees a cross-origin request.
 
 from __future__ import annotations
 
-import os
 import random
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
@@ -103,13 +102,7 @@ def parse_names(raw: str) -> list[Name]:
 
 @app.get("/api/health")
 def health() -> dict[str, Any]:
-    """Liveness check that also reports what corpus is loaded.
-
-    ``commit`` echoes Render's own RENDER_GIT_COMMIT env var (set
-    automatically on every deploy) so the footer can show which commit is
-    actually running -- a plain, unambiguous way to tell whether a given
-    fix has really been deployed, rather than inferring it from behavior.
-    """
+    """Liveness check that also reports what corpus is loaded."""
     corpus = load_corpus()
     return {
         "status": "ok",
@@ -118,7 +111,6 @@ def health() -> dict[str, Any]:
         "version": corpus.version,
         "source": corpus.source,
         "license": corpus.license,
-        "commit": os.environ.get("RENDER_GIT_COMMIT", "dev")[:7],
     }
 
 
