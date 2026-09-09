@@ -117,6 +117,9 @@ def serialize(verse: Verse, highlights: list[Highlight] | None = None) -> Payloa
         "ref": verse.ref,
         "text": verse.text,
         "highlights": sorted(highlights or [], key=lambda h: h["start"]),
+        # Rashi's commentary, pre-cleaned HTML limited to <b>/<small>/<br> (see
+        # scripts/build_dataset.py) -- empty when he wrote nothing on this verse.
+        "rashi": verse.rashi,
     }
 
 

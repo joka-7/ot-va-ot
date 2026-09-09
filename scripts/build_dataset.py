@@ -2,8 +2,9 @@
 """Build the local Tanakh dataset used by the app.
 
 Downloads the 39 Hebrew book files of the "Tanach with Ta'amei Hamikra" version
-from Sefaria's public export bucket and writes them into a single gzipped JSON
-file at ``data/tanakh.json.gz``.
+from Sefaria's public export bucket, plus Rashi's commentary aligned to those
+same verses, and writes them into a single gzipped JSON file at
+``data/tanakh.json.gz``.
 
 This script is a *build-time* tool. Run it once (or whenever you want to refresh
 the corpus); the resulting file is committed to the repository, and the running
@@ -167,6 +168,97 @@ def clean_verse(text: str) -> str:
     return WHITESPACE.sub(" ", text).strip()
 
 
+# --- Rashi -------------------------------------------------------------------
+#
+# Rashi's commentary is fetched separately, from the same export bucket, and
+# matched up to the verse it comments on. Each verse can carry zero, one, or
+# several comments (one per phrase he addresses, each opening with the phrase
+# in bold); they're joined into a single block, in order, the way a printed
+# Mikraot Gedolot runs them.
+#
+# Sefaria's own markup for this is just <b> (the quoted phrase) and, rarely,
+# <small> (an editorial aside, e.g. a variant-reading note). Anything else is
+# stripped defensively -- this is the one piece of the dataset that ends up as
+# innerHTML in the browser rather than plain text, so only that fixed,
+# hand-verified tag set is ever allowed through.
+RASHI_ROOT = "https://storage.googleapis.com/sefaria-export/json/Tanakh/Rishonim on Tanakh/Rashi"
+RASHI_TAG = re.compile(r"<(?!/?(?:b|small|br)\b)[^>]*>", re.IGNORECASE)
+
+
+def rashi_url(section: str, book: str) -> str:
+    """Build the export URL for one book's merged Rashi text."""
+    path = f"{section}/Rashi on {book}/Hebrew/merged.json"
+    return f"{urllib.parse.quote(RASHI_ROOT, safe=':/')}/{urllib.parse.quote(path)}"
+
+
+def clean_rashi_comment(text: str) -> str:
+    """Reduce one raw Rashi comment to the safe HTML fragment the UI can show."""
+    text = ZERO_WIDTH.sub("", text)
+    text = RASHI_TAG.sub("", text)
+    return WHITESPACE.sub(" ", text).strip()
+
+
+def fetch_rashi(section: str, book: str) -> list[list[list[str]]] | None:
+    """Download one book's Rashi text, shaped like Sefaria's export: a list of
+    chapters, each a list of verses, each a list of that verse's comments.
+
+    Returns ``None`` if this book has no Rashi at all (not expected for any of
+    the 39 files today, but the corpus should still build if that changes).
+    """
+    url = rashi_url(section, book)
+    # urlopen honours file:// and any custom scheme, so refuse anything but
+    # https before opening it, same as fetch_book above.
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing to fetch a non-https URL: {url}")
+    try:
+        with urllib.request.urlopen(url, timeout=120) as response:  # nosec B310 - scheme checked above
+            return json.loads(response.read().decode("utf-8"))["text"]
+    except urllib.error.HTTPError as exc:
+        print(f"  warning: no Rashi for {book}: HTTP {exc.code}", file=sys.stderr)
+        return None
+
+
+def align_rashi(
+    chapters: list[list[str]], rashi: list[list[list[str]]] | None, book: str
+) -> list[list[str]]:
+    """Line Rashi's comments up with ``chapters``, one joined block per verse.
+
+    Sefaria trims trailing empty verses off the end of each chapter's array --
+    a chapter whose last few verses draw no comment from Rashi is simply
+    shorter here than the verse text's chapter -- so short chapters are padded
+    back out with empty strings rather than treated as a mismatch.
+
+    A chapter with *more* comments than verses is the opposite problem, and a
+    real one: a few chapters of Rashi's commentary (Exodus 38, notably, in the
+    Mishkan-construction chapters) are split against a different chapter
+    boundary than this edition of the verse text uses, so position-by-position
+    they'd land on the wrong verse entirely. Rather than risk that, such a
+    chapter is skipped -- no Rashi shown is better than the wrong Rashi shown.
+    """
+    if rashi is None:
+        return [[""] * len(chapter) for chapter in chapters]
+
+    aligned = []
+    for chapter_index, chapter in enumerate(chapters):
+        rashi_chapter = rashi[chapter_index] if chapter_index < len(rashi) else []
+        if len(rashi_chapter) > len(chapter):
+            print(
+                f"  warning: Rashi/{book} ch.{chapter_index + 1} has more comments "
+                f"({len(rashi_chapter)}) than verses ({len(chapter)}) -- skipping",
+                file=sys.stderr,
+            )
+            aligned.append([""] * len(chapter))
+            continue
+
+        joined = [
+            " ".join(clean_rashi_comment(c) for c in comments if c.strip())
+            for comments in rashi_chapter
+        ]
+        joined += [""] * (len(chapter) - len(joined))
+        aligned.append(joined)
+    return aligned
+
+
 def book_url(section: str, book: str) -> str:
     """Build the export URL for one book, quoting spaces and the apostrophe."""
     path = f"{section}/{book}/Hebrew/{VERSION_FILE}"
@@ -196,8 +288,11 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
         cleaned = (clean_verse(verse) for verse in chapter if verse)
         chapters.append([verse for verse in cleaned if verse])
 
+    rashi = align_rashi(chapters, fetch_rashi(section, book), book)
+
     verse_count = sum(len(chapter) for chapter in chapters)
-    print(f"  {book:<16} {verse_count:>5} verses", file=sys.stderr)
+    rashi_count = sum(1 for chapter in rashi for verse in chapter if verse)
+    print(f"  {book:<16} {verse_count:>5} verses, {rashi_count:>5} with Rashi", file=sys.stderr)
 
     return {
         "order": order,
@@ -207,6 +302,7 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
         "section": section,
         "sectionHe": SECTION_HE[section],
         "chapters": chapters,
+        "rashi": rashi,
     }
 
 
@@ -215,7 +311,10 @@ def main() -> int:
     if missing:
         raise SystemExit(f"BOOK_NAMES_FR is missing an entry for: {', '.join(missing)}")
 
-    print(f"Fetching {len(BOOKS)} book files from Sefaria's export bucket…", file=sys.stderr)
+    print(
+        f"Fetching {len(BOOKS)} book files (text + Rashi) from Sefaria's export bucket…",
+        file=sys.stderr,
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         books = list(pool.map(fetch_book, enumerate(BOOKS)))
@@ -226,10 +325,12 @@ def main() -> int:
         del book["order"]
 
     verse_count = sum(len(ch) for b in books for ch in b["chapters"])
+    rashi_count = sum(1 for b in books for ch in b["rashi"] for verse in ch if verse)
     dataset = {
         "source": "https://github.com/Sefaria/Sefaria-Export",
         "version": VERSION_FILE.removesuffix(".json"),
         "textSource": "http://www.tanach.us/Tanach.xml",
+        "rashiSource": "https://github.com/Sefaria/Sefaria-Export (Rashi, merged edition)",
         "license": "Public Domain",
         "bookCount": len(books),
         "verseCount": verse_count,
@@ -244,7 +345,8 @@ def main() -> int:
     size_mb = DATA_PATH.stat().st_size / 1024 / 1024
     print(
         f"\nWrote {DATA_PATH.relative_to(Path.cwd())}: "
-        f"{len(books)} books, {verse_count:,} verses, {size_mb:.2f} MB gzipped",
+        f"{len(books)} books, {verse_count:,} verses "
+        f"({rashi_count:,} with Rashi), {size_mb:.2f} MB gzipped",
         file=sys.stderr,
     )
     return 0
