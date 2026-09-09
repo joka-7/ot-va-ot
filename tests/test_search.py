@@ -4,6 +4,8 @@ These assert against the real committed corpus rather than a fixture: the point
 of most of them is that the *actual* Tanakh gives the answer we expect.
 """
 
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -210,6 +212,50 @@ class TestVerseShape:
         assert verse["chapterHe"] == he_number(verse["chapter"])
         assert verse["verseHe"] == he_number(verse["verse"])
         assert verse["ref"].endswith(f"{verse['chapterHe']}:{verse['verseHe']}")
+
+    def test_every_verse_carries_a_rashi_field(self, corpus):
+        """Present (even if empty) on every verse, so the client never has to
+        special-case its absence."""
+        result = search(corpus, [Name.parse("דוד")])
+        for verse in result["names"][0]["letterMatch"]["verses"]:
+            assert "rashi" in verse
+            assert isinstance(verse["rashi"], str)
+
+
+class TestRashi:
+    """Rashi's commentary, matched up to the verse it comments on."""
+
+    def test_most_verses_have_rashi(self, corpus):
+        """Rashi covers the whole Tanakh, but not every single verse -- well
+        over half of it is a safe floor without being an exact, brittle count."""
+        with_rashi = sum(1 for verse in corpus.verses if verse.rashi)
+        assert with_rashi > len(corpus.verses) * 0.5
+
+    def test_genesis_one_one(self, corpus):
+        """Rashi's famous opening comment, asking why the Torah doesn't begin
+        with the first commandment instead of the story of creation. Compared
+        with niqqud stripped out (via ``normalize``) since the exact placement
+        of combining marks in the source isn't something to pin a test to."""
+        verse = next(v for v in corpus.verses if v.ref == "בראשית א׳:א׳")
+        assert "רבייצחק" in normalize(verse.rashi)
+
+    def test_only_the_allowed_tags_survive(self, corpus):
+        """The commentary is rendered as innerHTML client-side, so only the
+        hand-verified <b>/<small>/<br> tags may ever appear in it."""
+        stray = re.compile(r"<(?!/?(?:b|small|br)\b)")
+        assert not any(stray.search(verse.rashi) for verse in corpus.verses)
+
+    def test_no_verse_has_more_rashi_than_it_should(self, corpus):
+        """Every verse's Rashi is plain, well-formed text, not leftover JSON
+        structure from a misaligned chapter (see build_dataset.align_rashi)."""
+        assert all(isinstance(verse.rashi, str) for verse in corpus.verses)
+
+    def test_serialized_rashi_matches_the_verse(self, corpus):
+        result = search(corpus, [Name.parse("אברהם")])
+        verse = next(
+            v for v in result["names"][0]["exactWord"]["verses"] if v["ref"] == "בראשית י״ז:י״ז"
+        )
+        assert "אַבְרָהָם" in verse["rashi"] or "אברהם" in verse["rashi"]
 
 
 class TestHighlights:
