@@ -35,8 +35,10 @@ ot-va-ot/
 │   ├── i18n.js
 │   ├── index.html
 │   ├── manifest.json
-│   └── styles.css
+│   ├── styles.css
+│   └── sw.js
 ├── tests/
+│   ├── test_build_dataset.py    # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
 │   ├── test_hebrew.py           # Tests for the Hebrew normalization primitives.
 │   └── test_search.py           # Tests for the corpus, the matching logic, and the HTTP API.
 ├── .ai
