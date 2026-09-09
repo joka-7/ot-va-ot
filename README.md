@@ -20,8 +20,8 @@ setup, no external API to depend on, and no network access needed at runtime.
                                  └──────────┬────────────────┘
                                             │ loaded once at boot
                                  ┌──────────▼────────────────┐
-                                 │ data/tanakh.json.gz 1.3MB │
-                                 │ 23,206 verses, 24 books   │
+                                 │ data/tanakh.json.gz 3.2MB │
+                                 │ 23,206 verses + Rashi     │
                                  └───────────────────────────┘
 ```
 
@@ -54,9 +54,10 @@ ipconfig getifaddr en0                  # macOS
 | | |
 | --- | --- |
 | **Text** | "תנ״ך עם טעמי המקרא" — the Miqra with full niqqud and cantillation |
-| **Source** | [Sefaria's public export](https://github.com/Sefaria/Sefaria-Export), originally from [tanach.us](http://www.tanach.us/Tanach.xml) |
+| **Commentary** | Rashi, on the 14,733 verses (63%) he wrote on |
+| **Source** | [Sefaria's public export](https://github.com/Sefaria/Sefaria-Export), originally from [tanach.us](http://www.tanach.us/Tanach.xml) (Rashi: Sefaria's merged edition) |
 | **License** | Public Domain |
-| **Size** | 23,206 verses across the 24 books (39 files), 1.3 MB gzipped |
+| **Size** | 23,206 verses across the 24 books (39 files), 3.2 MB gzipped (text + Rashi) |
 | **Packaging** | One gzipped JSON at `data/tanakh.json.gz`, committed to the repo |
 | **Loading** | Read and indexed once at process start (~1.5 s), then held in memory |
 
@@ -91,6 +92,16 @@ each case, and `tests/test_search.py::TestCleanedText` guards them:
 - **`<br><small>…`** — Lamentations 5:22 and Ecclesiastes 12:14 append the
   penultimate verse, per the custom of not ending on a harsh note. Removed.
 - **U+200D zero-width joiner** — would otherwise split the word around it in two.
+
+Rashi's commentary goes through its own cleaning, `clean_rashi_comment()`: it is
+the one piece of the dataset rendered as `innerHTML` rather than plain text
+(client-side, to keep the phrase Rashi is glossing in `<b>`), so every tag but a
+hand-verified `<b>`/`<small>`/`<br>` is stripped rather than trusted. It's also
+matched up to a verse *positionally* (chapter, then verse-within-chapter), which
+breaks if Rashi's own chapter boundaries don't agree with this edition's — true
+for a handful of chapters (Exodus 38, notably, in the Mishkan-construction
+chapters). `align_rashi()` detects that case and drops the chapter's Rashi
+entirely rather than risk attaching a comment to the wrong verse.
 
 ## Hebrew normalization
 
@@ -203,7 +214,8 @@ A verse:
                                    // regardless of UI language (ט״ו and ט״ז included)
   "text": "אֵ֣לֶּה תוֹלְד֧וֹת …",
   "highlights": [ { "start": 0, "end": 3, "kind": "first" },   // kind: first | last | name
-                  { "start": 112, "end": 113, "kind": "last" } ]
+                  { "start": 112, "end": 113, "kind": "last" } ],
+  "rashi": "<b>אלה.</b> האמורים למעלה: …"   // "" when Rashi wrote nothing on this verse
 }
 ```
 
@@ -249,6 +261,11 @@ object under the relevant key (`group.letterMatch`, `group.exactWord`,
 `group.partialWord`, `pair.consecutive`, `pair.reversed`, `pair.nearMiss`) to
 have that group's toggle appear.
 
+Every verse card that has one also carries a collapsed **"פירוש רש״י"**
+disclosure (`.rashi` in `static/app.js`/`styles.css`, same native `<details>`
+pattern as the two above) — closed by default, so the card stays short until
+the reader taps it open. Absent entirely on a verse Rashi didn't comment on.
+
 ## Tests
 
 ```bash
@@ -256,7 +273,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-61 tests, run against the real committed corpus rather than a fixture — the point
+91 tests, run against the real committed corpus rather than a fixture — the point
 of most of them is that the actual Tanakh gives the expected answer: `אברהם`
 matches 297 verses, `שרה` 76, `דוד` 4, and `אברהם, שרה` has exactly one
 consecutive pair.

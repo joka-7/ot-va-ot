@@ -206,6 +206,34 @@
     return button;
   }
 
+  /*
+   * Rashi's commentary, hidden behind a native <details> disclosure -- same
+   * pattern as `exampleDisclosure` below, closed by default so a card stays
+   * short until the reader chooses to open it. Only rendered when the verse
+   * has one: Rashi didn't comment on every verse in the Tanakh.
+   *
+   * `verse.rashi` is set via .innerHTML rather than .textContent because it
+   * carries a few marks (the phrase Rashi is glossing, in <b>) as HTML. That
+   * HTML is produced at dataset build time from Sefaria's text, not from user
+   * input, and is limited there to a hand-verified tag whitelist
+   * (<b>/<small>/<br> -- see scripts/build_dataset.py's clean_rashi_comment).
+   */
+  function rashiDisclosure(verse) {
+    if (!verse.rashi) return null;
+
+    var details = document.createElement("details");
+    details.className = "rashi";
+    var summary = document.createElement("summary");
+    summary.textContent = t(locale, "rashi.toggle");
+    details.appendChild(summary);
+
+    var body = hebrewSpan("div", "rashi-text", null);
+    body.innerHTML = verse.rashi;
+    details.appendChild(body);
+
+    return details;
+  }
+
   function verseCard(verse, note) {
     var card = el("article", "card");
 
@@ -221,6 +249,9 @@
     var foot = el("div", "card-foot");
     foot.appendChild(copyButton(verse));
     card.appendChild(foot);
+
+    var rashi = rashiDisclosure(verse);
+    if (rashi) card.appendChild(rashi);
 
     return card;
   }

@@ -29,7 +29,7 @@ class Verse:
     __slots__ = (
         "index", "book_index", "book", "book_en", "book_fr", "section",
         "chapter", "number", "text", "ref", "chapter_he", "verse_he",
-        "letters", "first", "last", "word_list", "word_set",
+        "letters", "first", "last", "word_list", "word_set", "rashi",
     )
 
     def __init__(
@@ -43,6 +43,7 @@ class Verse:
         chapter: int,
         number: int,
         text: str,
+        rashi: str = "",
     ):
         self.index = index
         self.book_index = book_index
@@ -53,6 +54,10 @@ class Verse:
         self.chapter = chapter
         self.number = number
         self.text = text
+        # Rashi's commentary on this verse, already joined and HTML-cleaned at
+        # build time (see scripts/build_dataset.py); empty when he wrote
+        # nothing on it, which is true of well over a third of the Tanakh.
+        self.rashi = rashi
         # Gematria forms, precomputed once: the Hebrew-locale UI shows these
         # rather than Arabic numerals, and the traditional citation format
         # (used for copy-to-clipboard) always uses them regardless of locale.
@@ -88,8 +93,13 @@ class Corpus:
                     "section": book["sectionHe"],
                 }
             )
+            # "rashi" is missing from a dataset built before this field existed --
+            # fall back to no commentary anywhere rather than fail to load.
+            rashi_book = book.get("rashi")
             for chapter_number, chapter in enumerate(book["chapters"], start=1):
+                rashi_chapter = rashi_book[chapter_number - 1] if rashi_book else None
                 for verse_number, text in enumerate(chapter, start=1):
+                    rashi = rashi_chapter[verse_number - 1] if rashi_chapter else ""
                     self.verses.append(
                         Verse(
                             index=len(self.verses),
@@ -101,6 +111,7 @@ class Corpus:
                             chapter=chapter_number,
                             number=verse_number,
                             text=text,
+                            rashi=rashi,
                         )
                     )
 

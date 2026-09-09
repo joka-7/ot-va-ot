@@ -363,6 +363,31 @@ mark.first { background: var(--first-bg); color: var(--first); font-weight: 700;
 mark.last  { background: var(--last-bg);  color: var(--last);  font-weight: 700; }
 mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700; }
 
+/* Rashi's commentary: a closed-by-default <details> disclosure, same pattern
+   as .example above -- hidden until the reader chooses to open it. */
+.rashi { margin-top: .6rem; font-size: .9rem; }
+.rashi summary {
+  cursor: pointer;
+  color: var(--accent-text);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+}
+.rashi-text {
+  margin: .5rem 0 0;
+  padding: .7rem .85rem;
+  background: var(--surface-2);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-verse);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text);
+}
+.rashi-text b { color: var(--accent-text); }
+.rashi-text small { font-size: .8em; color: var(--text-soft); }
+
 .card-foot {
   display: flex;
   justify-content: flex-start;
