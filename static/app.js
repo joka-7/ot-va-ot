@@ -26,7 +26,6 @@
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
   var langSwitch = document.getElementById("lang-switch");
-  var installBtn = document.getElementById("install-btn");
   var settingsBtn = document.getElementById("settings-btn");
   var settingsDialog = document.getElementById("settings-dialog");
 
@@ -576,56 +575,6 @@
   }
 
   settingsBtn.addEventListener("click", openSettings);
-
-  // --- Install (Add to Home Screen) ---------------------------------------
-  //
-  // Always shown as soon as the page isn't already running standalone,
-  // rather than waiting on `beforeinstallprompt` to decide whether the
-  // button even exists -- that event is unreliable in practice (browser
-  // engagement heuristics, non-Chrome browsers, in-app webviews), and a
-  // button that only sometimes appears is indistinguishable from a broken
-  // one. Every tap does *something*: the native prompt when it's been
-  // captured, an iOS-specific hint otherwise, or a generic "check your
-  // browser's menu" hint as the last resort -- never a silent no-op.
-
-  var deferredInstallPrompt = null;
-
-  function isStandalone() {
-    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
-  }
-
-  function isIOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
-  }
-
-  if (!isStandalone()) installBtn.hidden = false;
-
-  window.addEventListener("beforeinstallprompt", function (event) {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-  });
-
-  installBtn.addEventListener("click", function () {
-    if (deferredInstallPrompt) {
-      var prompt = deferredInstallPrompt;
-      deferredInstallPrompt = null;
-      prompt.prompt();
-      prompt.userChoice
-        .then(function (choice) {
-          if (choice.outcome === "accepted") installBtn.hidden = true;
-        })
-        .catch(function () { /* left visible -- tapping again just retries */ });
-    } else if (isIOS()) {
-      toast(t(locale, "install.iosHint"));
-    } else {
-      toast(t(locale, "install.genericHint"));
-    }
-  });
-
-  window.addEventListener("appinstalled", function () {
-    installBtn.hidden = true;
-    deferredInstallPrompt = null;
-  });
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () {
