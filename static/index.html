@@ -21,24 +21,6 @@
   <meta name="apple-mobile-web-app-title" content="פסוק לשם">
 </head>
 <body>
-  <!--
-    Deliberately a sibling of <header>, not a child of it: an in-header
-    install control was tried before (see git history on this repo and on
-    Shas Radar) and taps went unresponsive on some real devices no matter
-    how the CSS was hardened, most likely from sharing a stacking context
-    with .search's negative-margin overlap onto the header. A plain
-    position:fixed element off in its own stacking context, with a single
-    tap target and no secondary dismiss control, sidesteps that whole
-    class of problem.
-  -->
-  <button type="button" class="install-fab" id="install-btn" data-i18n-aria-label="install.button" aria-label="התקנה" hidden>
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M12 3v11.5"/>
-      <path d="M7.5 10.5 12 15l4.5-4.5"/>
-      <path d="M5 19h14"/>
-    </svg>
-  </button>
-
   <header class="header">
     <div class="wrap header-wrap">
       <div class="header-top">
