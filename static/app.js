@@ -1,5 +1,5 @@
 /*
- * פסוק לשם — frontend.
+ * אות ואות — frontend.
  *
  * Plain ES2020, no build step and no framework. The server does the matching
  * and returns highlight offsets, so this file is only concerned with asking,

@@ -1,4 +1,4 @@
-# פסוק לשם — Tanakh verses for a name
+# אות ואות — Tanakh verses for a name
 
 A mobile-first Hebrew web app for the custom of saying a verse that matches your
 name: a verse whose **first letter** matches the name's first letter and whose
@@ -7,9 +7,11 @@ Amidah. It also finds verses that contain the name outright, and — for two or
 three names, comma-separated — pairs of **consecutive verses** matching two of
 them in order.
 
-Everything runs from one small FastAPI service: the API and the UI are served
-from the same origin, and the full Tanakh is bundled locally, so there is no CORS
-setup, no external API to depend on, and no network access needed at runtime.
+Everything runs from one small FastAPI service, with the full Tanakh bundled
+locally: no external API to depend on and no network access needed at runtime.
+The same `static/` directory is served two ways — by the app itself, and from a
+CDN as the public frontend (see **Deploying**) — so the API carries a small CORS
+allowlist for the second case.
 
 ```
 ┌── static/ ────────────┐        ┌── app/ ──────────────────┐

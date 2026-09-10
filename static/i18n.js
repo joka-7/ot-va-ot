@@ -1,5 +1,5 @@
 /*
- * פסוק לשם — translations.
+ * אות ואות — translations.
  *
  * Everything here is UI chrome: labels, buttons, headings, messages. The
  * Tanakh verse text itself is never translated -- it stays in Hebrew in every
@@ -21,9 +21,9 @@ var I18N = (function () {
   var STRINGS = {
     he: {
       "meta.description": "חיפוש פסוק בתנ״ך לפי האות הראשונה והאחרונה של השם, לפי המנהג לומר פסוק לשם בסוף תפילת העמידה.",
-      "doc.title": "פסוק לשם — חיפוש פסוקים בתנ״ך לפי שם",
+      "doc.title": "אות ואות — חיפוש פסוקים בתנ״ך לפי שם",
 
-      "header.title": "פסוק לשם",
+      "header.title": "אות ואות",
       "header.subtitle": "מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות",
 
       "settings.button": "הגדרות",
@@ -95,9 +95,9 @@ var I18N = (function () {
 
     en: {
       "meta.description": "Find a Tanakh verse matching a name's first and last letter, per the Jewish custom of saying a verse for one's name at the end of the Amidah.",
-      "doc.title": "A Verse for the Name — Search the Tanakh by Name",
+      "doc.title": "Ot va-Ot — Search the Tanakh by Name",
 
-      "header.title": "A Verse for the Name",
+      "header.title": "Ot va-Ot",
       "header.subtitle": "Find Tanakh verses that begin and end with the letters of the name/names",
 
       "settings.button": "Settings",
@@ -169,9 +169,9 @@ var I18N = (function () {
 
     fr: {
       "meta.description": "Trouver un verset du Tanakh dont la première et la dernière lettre correspondent à celles d'un prénom, selon la coutume juive de réciter un verset pour son prénom à la fin de l'Amida.",
-      "doc.title": "Un verset pour le prénom — Recherche dans le Tanakh",
+      "doc.title": "Ot va-Ot — Recherche dans le Tanakh",
 
-      "header.title": "Un verset pour le prénom",
+      "header.title": "Ot va-Ot",
       "header.subtitle": "Trouver les versets du Tanakh qui commencent et finissent par les lettres du prénom/des prénoms",
 
       "settings.button": "Paramètres",
