@@ -43,7 +43,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="פסוק לשם",
+    title="אות ואות",
     description="Finds Tanakh verses matching a personal name, per the Jewish custom.",
     version="1.0.0",
     lifespan=lifespan,

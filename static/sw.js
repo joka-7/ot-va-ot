@@ -1,5 +1,5 @@
 /*
- * פסוק לשם — service worker.
+ * אות ואות — service worker.
  *
  * Two jobs:
  *
