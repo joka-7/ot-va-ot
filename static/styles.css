@@ -31,6 +31,12 @@
 
   --font: "Heebo", system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
   --font-verse: "Frank Ruhl Libre", "Times New Roman", var(--font);
+  /* For text carrying both niqqud and ta'amei hamikra (cantillation) on the
+     same letter -- Frank Ruhl Libre doesn't stack the two mark types
+     correctly (it's a general revival, not the cantillation-capable
+     "Taamey Frank" it's named after), so those letters render wrong. Skips
+     straight to the system's own Hebrew font, which already handles this. */
+  --font-verse-vocalized: "Times New Roman", var(--font);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -459,7 +465,7 @@ body {
 .badge-note { background: var(--first-bg); color: var(--first); }
 
 .verse {
-  font-family: var(--font-verse);
+  font-family: var(--font-verse-vocalized);
   font-size: 1.25rem;
   line-height: 2;
   margin: 0;
@@ -490,7 +496,7 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   background: var(--surface-2);
   border-inline-start: 3px solid var(--accent);
   border-radius: var(--radius-sm);
-  font-family: var(--font-verse);
+  font-family: var(--font-verse-vocalized);
   font-size: 1.05rem;
   line-height: 1.85;
   color: var(--text);
