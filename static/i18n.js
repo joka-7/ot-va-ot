@@ -26,6 +26,11 @@ var I18N = (function () {
       "header.title": "פסוק לשם",
       "header.subtitle": "מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות",
 
+      "settings.button": "הגדרות",
+      "settings.heading": "הגדרות",
+      "settings.close": "סגירה",
+      "settings.languageHeading": "שפה",
+
       "search.label": "שם לחיפוש",
       "search.placeholder": "לדוגמא: {example}",
       "search.button": "חיפוש",
@@ -63,6 +68,7 @@ var I18N = (function () {
       "copy.done": "✓ הועתק",
       "copy.toastCopied": "הפסוק הועתק",
       "copy.toastFailed": "ההעתקה נכשלה",
+      "share.button": "שיתוף",
       "rashi.toggle": "פירוש רש״י",
       "more.button": "הצג עוד {n}",
       "group.exampleToggle": "דוגמה",
@@ -93,6 +99,11 @@ var I18N = (function () {
 
       "header.title": "A Verse for the Name",
       "header.subtitle": "Find Tanakh verses that begin and end with the letters of the name/names",
+
+      "settings.button": "Settings",
+      "settings.heading": "Settings",
+      "settings.close": "Close",
+      "settings.languageHeading": "Language",
 
       "search.label": "Name to search",
       "search.placeholder": "e.g. {example}",
@@ -131,6 +142,7 @@ var I18N = (function () {
       "copy.done": "✓ Copied",
       "copy.toastCopied": "Verse copied",
       "copy.toastFailed": "Copy failed",
+      "share.button": "Share",
       "rashi.toggle": "Rashi's Commentary",
       "more.button": "Show {n} more",
       "group.exampleToggle": "Example",
@@ -161,6 +173,11 @@ var I18N = (function () {
 
       "header.title": "Un verset pour le prénom",
       "header.subtitle": "Trouver les versets du Tanakh qui commencent et finissent par les lettres du prénom/des prénoms",
+
+      "settings.button": "Paramètres",
+      "settings.heading": "Paramètres",
+      "settings.close": "Fermer",
+      "settings.languageHeading": "Langue",
 
       "search.label": "Prénom à rechercher",
       "search.placeholder": "par ex. {example}",
@@ -199,6 +216,7 @@ var I18N = (function () {
       "copy.done": "✓ Copié",
       "copy.toastCopied": "Verset copié",
       "copy.toastFailed": "Échec de la copie",
+      "share.button": "Partager",
       "rashi.toggle": "Commentaire de Rashi",
       "more.button": "Afficher {n} de plus",
       "group.exampleToggle": "Exemple",

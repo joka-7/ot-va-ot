@@ -17,12 +17,16 @@
 <body>
   <header class="header">
     <div class="wrap header-wrap">
-      <div class="lang-switch" id="lang-switch" role="group" aria-label="Language / שפה / Langue">
-        <button type="button" class="lang-btn" data-lang="he" lang="he">עברית</button>
-        <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
-        <button type="button" class="lang-btn" data-lang="fr" lang="fr">Français</button>
+      <div class="header-top">
+        <img class="app-icon" alt="" aria-hidden="true" src="data:image/jpeg;base64,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">
+        <h1 class="title" data-i18n="header.title">פסוק לשם</h1>
+        <button type="button" class="settings-btn" id="settings-btn" data-i18n-aria-label="settings.button" aria-label="הגדרות">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
       </div>
-      <h1 class="title" data-i18n="header.title">פסוק לשם</h1>
       <p class="subtitle" data-i18n="header.subtitle">מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות</p>
     </div>
   </header>
@@ -90,6 +94,31 @@
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!--
+    Native <dialog> rather than a hand-rolled overlay: focus trapping,
+    Escape-to-close, and the ::backdrop all come for free. method="dialog"
+    on the form means the close (✕) button needs no JS handler at all.
+    Holds the language switcher, moved here out of the header banner so the
+    header stays a plain icon + title (matching KanDOne's app-shell header).
+  -->
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form method="dialog" class="settings-form">
+      <div class="settings-head">
+        <h2 data-i18n="settings.heading">הגדרות</h2>
+        <button type="submit" class="dialog-close" data-i18n-aria-label="settings.close" aria-label="סגירה">✕</button>
+      </div>
+
+      <section class="settings-section">
+        <h3 class="settings-section-title" data-i18n="settings.languageHeading">שפה</h3>
+        <div class="lang-switch" id="lang-switch" role="group" aria-label="Language / שפה / Langue">
+          <button type="button" class="lang-btn" data-lang="he" lang="he">עברית</button>
+          <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
+          <button type="button" class="lang-btn" data-lang="fr" lang="fr">Français</button>
+        </div>
+      </section>
+    </form>
+  </dialog>
 
   <script src="/i18n.js"></script>
   <script src="/app.js"></script>
