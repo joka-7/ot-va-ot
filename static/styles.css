@@ -31,6 +31,12 @@
 
   --font: "Heebo", system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
   --font-verse: "Frank Ruhl Libre", "Times New Roman", var(--font);
+  /* For text carrying both niqqud and ta'amei hamikra (cantillation) on the
+     same letter -- Frank Ruhl Libre doesn't stack the two mark types
+     correctly (it's a general revival, not the cantillation-capable
+     "Taamey Frank" it's named after), so those letters render wrong. Skips
+     straight to the system's own Hebrew font, which already handles this. */
+  --font-verse-vocalized: "Times New Roman", var(--font);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -86,6 +92,11 @@ body {
   color: #fff;
   padding: calc(1rem + env(safe-area-inset-top)) 0 1.5rem;
   text-align: center;
+  /* Pinned to the top of the viewport instead of scrolling away with the
+     page, matching KanDOne's header. */
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 .header-wrap { display: flex; flex-direction: column; align-items: center; }
 .title {
@@ -97,6 +108,54 @@ body {
 }
 .subtitle { margin: 0; opacity: .88; font-size: .95rem; }
 
+/* --- Header icon + settings button ---
+   icon+title+gear, matching KanDOne's header (AppBrandMark + title + a
+   Settings entry point). The settings button is absolutely positioned so
+   the icon+title pair still centers as a group. */
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  position: relative;
+  width: 100%;
+}
+.app-icon {
+  flex: 0 0 auto;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 10px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, .18);
+}
+.settings-btn {
+  position: absolute;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .4);
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  cursor: pointer;
+  transition: background .15s;
+}
+.settings-btn:hover { background: rgba(255, 255, 255, .24); }
+.settings-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
 /* --- Language switch --- */
 
 .lang-switch {
@@ -105,7 +164,6 @@ body {
   background: rgba(255, 255, 255, .14);
   border-radius: 999px;
   padding: .25rem;
-  margin-bottom: .9rem;
 }
 .lang-btn {
   font: 500 .8rem var(--font);
@@ -126,6 +184,62 @@ body {
   opacity: 1;
   font-weight: 700;
 }
+
+/* --- Settings dialog ---
+   Native <dialog>: focus trapping, Escape-to-close, and the ::backdrop all
+   come for free. method="dialog" on the form means the close (✕) button
+   needs no JS handler at all. Holds the language switcher moved out of the
+   header banner above. */
+
+.settings-dialog {
+  width: min(92vw, 26rem);
+  max-height: min(88vh, 34rem);
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  background: var(--surface);
+  color: var(--text);
+}
+.settings-dialog::backdrop { background: rgba(20, 16, 8, .5); }
+.settings-form { padding: 1.25rem; overflow-y: auto; }
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .6rem;
+}
+.settings-head h2 { margin: 0; font-family: var(--font-verse); font-size: 1.2rem; }
+.dialog-close {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  font-size: .9rem;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.settings-section + .settings-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--line);
+}
+.settings-section-title {
+  margin: 0 0 .6rem;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+/* Inside the dialog the lang switch sits on a light surface, not the
+   header's colored background, so it needs its own readable palette rather
+   than the white-on-color one above. */
+.settings-dialog .lang-switch { background: var(--surface-2); }
+.settings-dialog .lang-btn { color: var(--text-soft); }
+.settings-dialog .lang-btn:hover { opacity: 1; color: var(--text); }
+.settings-dialog .lang-btn.active { background: var(--accent); color: #fff; }
 
 /* --- Install icon button ---
    Fixed to the same physical corner regardless of scroll position or
@@ -214,7 +328,9 @@ body {
 .chip:focus-visible,
 .copy:focus-visible,
 .more:focus-visible,
-.install-fab:focus-visible {
+.install-fab:focus-visible,
+.settings-btn:focus-visible,
+.dialog-close:focus-visible {
   outline: 2.5px solid var(--accent);
   outline-offset: 2px;
 }
@@ -390,7 +506,7 @@ body {
 .badge-note { background: var(--first-bg); color: var(--first); }
 
 .verse {
-  font-family: var(--font-verse);
+  font-family: var(--font-verse-vocalized);
   font-size: 1.25rem;
   line-height: 2;
   margin: 0;
@@ -421,7 +537,7 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   background: var(--surface-2);
   border-inline-start: 3px solid var(--accent);
   border-radius: var(--radius-sm);
-  font-family: var(--font-verse);
+  font-family: var(--font-verse-vocalized);
   font-size: 1.05rem;
   line-height: 1.85;
   color: var(--text);
