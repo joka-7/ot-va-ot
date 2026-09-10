@@ -26,6 +26,8 @@
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
   var langSwitch = document.getElementById("lang-switch");
+  var settingsBtn = document.getElementById("settings-btn");
+  var settingsDialog = document.getElementById("settings-dialog");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -207,6 +209,57 @@
   }
 
   /*
+   * Hands the verse off to whatever the OS offers to share text with
+   * (Messages, WhatsApp, Mail, …) via the Web Share API. Browsers without it
+   * (most desktop browsers) fall back to the same clipboard copy the Copy
+   * button does, so the action is never a dead end -- just a slower one.
+   */
+  function shareButton(verse) {
+    var button = el("button", "copy", t(locale, "share.button"));
+    button.type = "button";
+
+    button.addEventListener("click", function () {
+      var payload = verse.text + "\n(" + verse.ref + ")";
+
+      function legacyCopy() {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(payload).then(function () {
+            toast(t(locale, "copy.toastCopied"));
+          }, function () {
+            toast(t(locale, "copy.toastFailed"));
+          });
+          return;
+        }
+        var area = document.createElement("textarea");
+        area.value = payload;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        try {
+          document.execCommand("copy");
+          toast(t(locale, "copy.toastCopied"));
+        } catch (err) {
+          toast(t(locale, "copy.toastFailed"));
+        }
+        document.body.removeChild(area);
+      }
+
+      if (navigator.share) {
+        navigator.share({ text: payload }).catch(function (err) {
+          if (err && err.name === "AbortError") return; // the visitor cancelled the share sheet
+          legacyCopy();
+        });
+      } else {
+        legacyCopy();
+      }
+    });
+
+    return button;
+  }
+
+  /*
    * Rashi's commentary, hidden behind a native <details> disclosure -- same
    * pattern as `exampleDisclosure` below, closed by default so a card stays
    * short until the reader chooses to open it. Only rendered when the verse
@@ -248,6 +301,7 @@
 
     var foot = el("div", "card-foot");
     foot.appendChild(copyButton(verse));
+    foot.appendChild(shareButton(verse));
     card.appendChild(foot);
 
     var rashi = rashiDisclosure(verse);
@@ -504,6 +558,22 @@
     var button = event.target.closest(".lang-btn");
     if (button) setLocale(button.dataset.lang);
   });
+
+  // --- Settings dialog ---------------------------------------------------------
+  //
+  // Holds the language switcher (moved out of the header banner). Native
+  // <dialog>: focus trapping, Escape-to-close, and the ::backdrop all come
+  // for free, same pattern as shas-radar's AI settings dialog.
+
+  function openSettings() {
+    if (typeof settingsDialog.showModal === "function") {
+      settingsDialog.showModal();
+    } else {
+      settingsDialog.setAttribute("open", ""); // very old browser: falls back to non-modal
+    }
+  }
+
+  settingsBtn.addEventListener("click", openSettings);
 
   // --- Searching -------------------------------------------------------------
 
