@@ -126,6 +126,56 @@
     }, 1900);
   }
 
+  // --- Talking to the API ------------------------------------------------------
+
+  /*
+   * fetch, but patient about a sleeping backend.
+   *
+   * On the free plan the API sleeps after 15 idle minutes and takes up to a
+   * minute to come back. The page is served from a CDN and so paints long
+   * before that, and the request that arrives meanwhile does not simply wait:
+   * whatever sits in front of the API answers first, with a gateway error or a
+   * dropped connection, well before the app itself is up. Retrying is what
+   * turns that into the wait it looks like it should be -- the caller's promise
+   * stays pending, so the "waking the server" notice stays up and the request
+   * completes on its own once the API answers.
+   *
+   * Only transport failures and gateway statuses are retried. A 4xx is the API
+   * itself talking (a bad query) and is returned as-is.
+   */
+  var WAKE_RETRY_BUDGET_MS = 90000;
+  var WAKE_RETRY_STEPS_MS = [1000, 2000, 3000, 5000, 5000, 8000];
+  var GATEWAY_STATUSES = [502, 503, 504];
+
+  function apiFetch(path, options) {
+    options = options || {};
+    var deadline = Date.now() + WAKE_RETRY_BUDGET_MS;
+
+    function attempt(n) {
+      return fetch(window.API_BASE + path, options).then(function (response) {
+        if (GATEWAY_STATUSES.indexOf(response.status) === -1) return response;
+        return retryOr(n, response, null);
+      }, function (error) {
+        // The caller aborted (a superseded search) -- not a failure to retry.
+        if (error && error.name === "AbortError") throw error;
+        return retryOr(n, null, error);
+      });
+    }
+
+    function retryOr(n, response, error) {
+      var waitMs = WAKE_RETRY_STEPS_MS[n] || WAKE_RETRY_STEPS_MS[WAKE_RETRY_STEPS_MS.length - 1];
+      if (n + 1 > WAKE_RETRY_STEPS_MS.length || Date.now() + waitMs > deadline) {
+        if (response) return response;
+        throw error;
+      }
+      if (options.signal && options.signal.aborted) throw new Error("aborted");
+      return new Promise(function (resolve) { setTimeout(resolve, waitMs); })
+        .then(function () { return attempt(n + 1); });
+    }
+
+    return attempt(0);
+  }
+
   // --- Localized formatting ---------------------------------------------------
 
   /* The badge/citation number: Hebrew gematria in the Hebrew locale (the
@@ -599,7 +649,7 @@
     renderSkeleton();
     var disarmWaking = armWaking();
 
-    fetch(window.API_BASE + "/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
+    apiFetch("/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
       .then(function (response) {
         return response.json().then(function (body) {
           if (!response.ok) {
@@ -669,7 +719,7 @@
   // Also the very first request the page makes, so a cold host is
   // explained immediately on load rather than only once the user searches.
   var disarmHealthWaking = armWaking();
-  fetch(window.API_BASE + "/api/health")
+  apiFetch("/api/health")
     .then(function (r) { return r.json(); })
     .then(function (health) {
       lastHealth = health;
