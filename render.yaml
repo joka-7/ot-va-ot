@@ -10,3 +10,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
+      # Origins allowed to call this API from a browser (comma-separated).
+      # The UI is also deployed to Vercel, which makes that copy cross-origin;
+      # see app/main.py for the allowlist and static/config.js for why. Leave
+      # unset and the default in app/main.py applies -- set it here only when
+      # the frontend moves to a domain that default doesn't cover.
+      - key: ALLOWED_ORIGINS
+        sync: false

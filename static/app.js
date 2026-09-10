@@ -599,7 +599,7 @@
     renderSkeleton();
     var disarmWaking = armWaking();
 
-    fetch("/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
+    fetch(window.API_BASE + "/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
       .then(function (response) {
         return response.json().then(function (body) {
           if (!response.ok) {
@@ -657,10 +657,19 @@
 
   applyStaticTranslations();
 
+  // Registers the service worker (static/sw.js), which makes the app
+  // installable to a home screen and keeps a copy of the shell so the icon
+  // opens straight into the UI -- even while the API host is still waking.
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () { /* installability just degrades gracefully */ });
+    });
+  }
+
   // Also the very first request the page makes, so a cold host is
   // explained immediately on load rather than only once the user searches.
   var disarmHealthWaking = armWaking();
-  fetch("/api/health")
+  fetch(window.API_BASE + "/api/health")
     .then(function (r) { return r.json(); })
     .then(function (health) {
       lastHealth = health;

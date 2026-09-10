@@ -49,6 +49,16 @@ hostname -I | awk '{print $1}'          # Linux
 ipconfig getifaddr en0                  # macOS
 ```
 
+### Installing it as an app
+
+The page is a PWA (`static/manifest.json`, `static/sw.js`), so a phone browser
+offers to add it to the home screen, where it opens full-screen with its own
+icon rather than in a browser tab. The service worker keeps a copy of the app
+shell, so the icon paints the UI straight away — even before the API has
+answered, which on a sleeping free-tier host is the difference between a usable
+screen and a blank one. It does not work offline beyond that shell: every
+search is a live API call against a corpus that only exists on the server.
+
 ## How the Tanakh is packaged and loaded
 
 | | |
@@ -287,12 +297,40 @@ outliving a deploy because its URL never changes. Revalidation is still cheap
 (a 304 when the file hasn't changed); this only forces the check, not a full
 re-download. `/api/*` responses are untouched by this.
 
-**Render** — `render.yaml` is a blueprint; point Render at the repo and it builds
-and starts with a `/api/health` health check. On the free plan the service sleeps
-when idle, so the first request after a while pays a cold start (up to ~a minute).
-The UI accounts for this itself: if a request is still pending after 2.5s, it shows
-a "waking the server" notice rather than looking frozen, and clears it the moment
-the response arrives (`armWaking`/`disarmWaking` in `static/app.js`).
+**Render (the API)** — `render.yaml` is a blueprint; point Render at the repo and
+it builds and starts with a `/api/health` health check. On the free plan the
+service sleeps after 15 idle minutes, so the first request after a while pays a
+cold start (up to ~a minute). The UI accounts for this itself: if a request is
+still pending after 2.5s, it shows a "waking the server" notice rather than
+looking frozen, and clears it the moment the response arrives
+(`armWaking`/`disarmWaking` in `static/app.js`).
+
+**Vercel (the frontend)** — `vercel.json` publishes `static/` as-is: no build
+step, and `Cache-Control: no-cache` on everything, which is what keeps the
+deploy-immediacy described above once the files are behind a CDN.
+
+This split exists because of that cold start. Served from Render, the *page*
+waits on the wake too, so a visitor gets a blank "starting" screen for a minute
+and the app looks broken rather than slow. Served from Vercel there is nothing
+to wake: the page paints immediately, and its own boot fetch (`/api/health`)
+starts Render waking right then — so the wake runs while the visitor is reading
+the page and typing a name, instead of in front of nothing. Installed as a PWA
+it is better still, because the service worker's cached shell opens straight
+from the icon.
+
+Both deployments serve the same `static/` directory. `static/config.js` decides
+at runtime whether the API shares the page's origin, so the `*.onrender.com` URL
+and a local `uvicorn` keep working unchanged, with no build step and no second
+copy of the frontend to keep in sync. To exercise the cross-origin path locally,
+run the API on one port and `python -m http.server 3000 -d static` on another,
+then set `localStorage.apiBase` to the API's URL — the two `localhost` ports are
+one origin to `config.js` but two to the browser.
+
+Being cross-origin, the Vercel copy has to pass the CORS allowlist in
+`app/main.py`: this project's `*.vercel.app` domains (production and previews)
+plus localhost. Override it with the `ALLOWED_ORIGINS` env var (comma-separated)
+for a custom domain — note that setting it replaces the listed defaults but not
+the preview-domain pattern.
 
 **Docker** — the corpus is baked into the image, so the container needs no
 network access:
@@ -304,8 +342,9 @@ docker run -p 8000:8000 pasuk-leshem
 
 **Anywhere else** — it is one ASGI app with two dependencies:
 `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. Fly.io, Railway and
-Deta all take it as-is. Vercel is a poor fit: its Python runtime is
-serverless, so the 1.5 s corpus load would run on cold starts.
+Deta all take it as-is. Vercel is a poor fit for *this* half: its Python runtime
+is serverless, so the 1.5 s corpus load would run on cold starts — which is
+exactly why only the static frontend goes there.
 
 ## Layout
 
@@ -313,8 +352,11 @@ serverless, so the 1.5 s corpus load would run on cold starts.
 app/hebrew.py           normalization, offsets, Hebrew numerals  (no deps)
 app/corpus.py           gzip load + the two search indexes
 app/search.py           letter match, name-in-verse, pairs, highlighting
-app/main.py             FastAPI routes; mounts static/ at "/"
+app/main.py             FastAPI routes; CORS allowlist; mounts static/ at "/"
 scripts/build_dataset.py   Sefaria export -> data/tanakh.json.gz (build-time)
+static/config.js        resolves the API base -- same origin, or the Render host
+static/manifest.json    PWA metadata, so the app installs to a home screen
+static/sw.js            service worker: installability + a cached app shell
 static/                 the UI: one page, one stylesheet, one script
 tests/                  pytest, against the real corpus
 ```
