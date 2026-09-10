@@ -529,7 +529,7 @@
     renderSkeleton();
     var disarmWaking = armWaking();
 
-    fetch("/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
+    fetch(window.API_BASE + "/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
       .then(function (response) {
         return response.json().then(function (body) {
           if (!response.ok) {
@@ -590,7 +590,7 @@
   // Also the very first request the page makes, so a cold host is
   // explained immediately on load rather than only once the user searches.
   var disarmHealthWaking = armWaking();
-  fetch("/api/health")
+  fetch(window.API_BASE + "/api/health")
     .then(function (r) { return r.json(); })
     .then(function (health) {
       lastHealth = health;
