@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "פסוק לשם — חיפוש פסוקים בתנ״ך לפי שם",
+  "short_name": "פסוק לשם",
+  "description": "חיפוש פסוק בתנ״ך לפי האות הראשונה והאחרונה של השם, לפי המנהג לומר פסוק לשם בסוף תפילת העמידה.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f4ef",
+  "theme_color": "#1f6f5c",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

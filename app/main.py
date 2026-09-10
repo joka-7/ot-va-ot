@@ -1,17 +1,24 @@
 """FastAPI application.
 
-Serves the JSON search API and the mobile web UI from the *same origin*, which
-is what keeps CORS out of the picture entirely — the page and the API it calls
-share a host, so a phone browser never sees a cross-origin request.
+Serves the JSON search API and, from ``static/``, the mobile web UI.
+
+Historically those were always the same origin, so CORS never came up. The UI
+is now *also* deployed to Vercel (see ``static/config.js`` for why — in short,
+a CDN has nothing to wake, so the page paints while this service is still
+starting), which makes that copy cross-origin. Both deployments are served from
+the same ``static/`` directory and the same routes below; the only difference is
+the CORS allowlist a cross-origin caller has to pass.
 """
 
 from __future__ import annotations
 
+import os
 import random
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -40,6 +47,39 @@ app = FastAPI(
     description="Finds Tanakh verses matching a personal name, per the Jewish custom.",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+
+# Who may call this API from a browser on another origin.
+#
+# An explicit allowlist rather than "*". Nothing here is secret — the API is
+# read-only and anonymous — but an allowlist costs nothing and keeps this
+# service from quietly becoming someone else's backend. allow_credentials stays
+# False: there are no cookies and no auth, so there is nothing for a
+# credentialed cross-origin request to carry.
+#
+# Override in the Render dashboard (ALLOWED_ORIGINS, comma-separated) when the
+# frontend moves to a custom domain.
+DEFAULT_ALLOWED_ORIGINS = "https://ot-va-ot.vercel.app,http://localhost:3000,http://127.0.0.1:3000"
+
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS).split(",")
+    if origin.strip()
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    # Vercel gives every branch and every deploy its own preview hostname, so
+    # those can't be listed one by one. Matched in full, and against this
+    # project's name, so it covers this app's previews and nothing else.
+    allow_origin_regex=r"https://ot-va-ot-[a-z0-9-]+\.vercel\.app",
+    # Every endpoint here is a GET, and none of them takes a custom request
+    # header, so a browser treats them as "simple" requests and never sends a
+    # preflight at all.
+    allow_methods=["GET", "OPTIONS"],
+    allow_credentials=False,
 )
 
 

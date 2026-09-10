@@ -8,11 +8,21 @@
   <meta name="description" id="meta-description" content="חיפוש פסוק בתנ״ך לפי האות הראשונה והאחרונה של השם, לפי המנהג לומר פסוק לשם בסוף תפילת העמידה.">
   <title id="doc-title">פסוק לשם — חיפוש פסוקים בתנ״ך לפי שם</title>
 
+  <!-- The API (see static/config.js). Only used when the page is served from
+       somewhere other than Render itself; harmless there, where it is the
+       page's own origin and already connected. -->
+  <link rel="preconnect" href="https://pasuk-leshem.onrender.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="פסוק לשם">
 </head>
 <body>
   <header class="header">
@@ -91,6 +101,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="/config.js"></script>
   <script src="/i18n.js"></script>
   <script src="/app.js"></script>
 </body>
