@@ -635,6 +635,7 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .footer a { color: var(--accent-text); }
 #footer-attribution { margin-bottom: .2rem; }
 #verse-count { margin-top: 0; }
+.footer-note { margin-bottom: 0; }
 .footer-about {
   margin: .6rem auto 0;
   max-width: 34rem;
