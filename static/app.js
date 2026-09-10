@@ -26,6 +26,8 @@
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
   var langSwitch = document.getElementById("lang-switch");
+  var settingsBtn = document.getElementById("settings-btn");
+  var settingsDialog = document.getElementById("settings-dialog");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -504,6 +506,22 @@
     var button = event.target.closest(".lang-btn");
     if (button) setLocale(button.dataset.lang);
   });
+
+  // --- Settings dialog ---------------------------------------------------------
+  //
+  // Holds the language switcher (moved out of the header banner). Native
+  // <dialog>: focus trapping, Escape-to-close, and the ::backdrop all come
+  // for free, same pattern as shas-radar's AI settings dialog.
+
+  function openSettings() {
+    if (typeof settingsDialog.showModal === "function") {
+      settingsDialog.showModal();
+    } else {
+      settingsDialog.setAttribute("open", ""); // very old browser: falls back to non-modal
+    }
+  }
+
+  settingsBtn.addEventListener("click", openSettings);
 
   // --- Searching -------------------------------------------------------------
 
