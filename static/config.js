@@ -1,44 +1,35 @@
 /*
- * Where the API lives.
+ * Where the API lives: the same origin as this page, always.
  *
- * The UI is deployed twice from this one `static/` directory: to Vercel as the
- * public frontend, and by FastAPI itself (`app/main.py` mounts this directory
- * at "/") so the *.onrender.com URL and local `uvicorn` keep working unchanged.
- * Those two cases differ only in whether the API shares the page's origin, so
- * that is the one thing decided here, at runtime -- no build step, no second
- * copy of this file to keep in sync.
+ * The UI is deployed twice from this one `static/` directory -- by the app
+ * itself (`app/main.py` mounts it at "/") and to Vercel as the public frontend.
+ * Both are same-origin with the API, because `vercel.json` rewrites `/api/*`
+ * to the Render service. The browser only ever talks to the origin it loaded
+ * the page from; Vercel's edge makes the hop to Render server-side.
  *
- * Why the split is worth it: on Render's free plan the service sleeps after 15
- * idle minutes and takes about a minute to wake. Served from Render, the page
- * *itself* waits on that wake, so a visitor stares at a blank "starting" screen
- * and the app looks broken. Served from Vercel's CDN the page paints at once and
- * its own boot fetches below start the wake immediately -- which then runs while
- * the visitor is reading the page and typing a search term, rather than in front
- * of nothing. The "waking the server" notice (armWaking in app.js) covers what
- * is left.
+ * That indirection is the point. The first attempt had the page call Render
+ * directly, which is a cross-origin request and so subject to CORS -- and
+ * cross-origin was where it broke, with the browser refusing the request
+ * before any of this code could see why ("TypeError: Failed to fetch" is all
+ * the JS gets; the reason stays in the console). Proxying does not configure
+ * CORS correctly, it removes CORS from the path entirely: no allowlist to
+ * match, no preflight to pass, and nothing that has to be re-pointed when the
+ * frontend's hostname changes.
+ *
+ * The remaining reason this file exists is the override below, which makes a
+ * genuinely split setup testable without a proxy in front of it.
  */
 (function () {
-  // The Render service's hostname, from `name:` in render.yaml. Change it here,
-  // in this one place, if the service is renamed or moved to a custom domain.
-  var API_ORIGIN = "https://pasuk-leshem.onrender.com";
-
-  var host = window.location.hostname;
-  var sameOrigin =
-    /(^|\.)onrender\.com$/.test(host) ||
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host === "";  // file://, and anything else without a host
-
-  // An explicit override wins over both, so the cross-origin path can be
-  // exercised locally (`localStorage.setItem("apiBase", "http://localhost:8000")`)
-  // without editing this file. Empty string is a meaningful value -- "same
-  // origin" -- so this deliberately tests for null rather than for falsiness.
   var override = null;
   try {
+    // e.g. localStorage.setItem("apiBase", "http://localhost:8000") to point a
+    // locally-served page at an API on another port. Empty string is a
+    // meaningful value -- "same origin" -- so this tests for null rather than
+    // for falsiness.
     override = window.localStorage.getItem("apiBase");
   } catch (e) {
     /* storage disabled (private mode, blocked cookies) -- fall through */
   }
 
-  window.API_BASE = override !== null ? override : sameOrigin ? "" : API_ORIGIN;
+  window.API_BASE = override !== null ? override : "";
 })();
