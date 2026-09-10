@@ -119,13 +119,9 @@ body {
   flex: 0 0 auto;
   width: 2.1rem;
   height: 2.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.3rem;
-  line-height: 1;
-  background: rgba(255, 255, 255, .18);
   border-radius: 10px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, .18);
 }
 .settings-btn {
   position: absolute;
@@ -639,7 +635,6 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .footer a { color: var(--accent-text); }
 #footer-attribution { margin-bottom: .2rem; }
 #verse-count { margin-top: 0; }
-.footer-note { margin-bottom: 0; }
 .footer-about {
   margin: .6rem auto 0;
   max-width: 34rem;
