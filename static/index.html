@@ -17,12 +17,16 @@
 <body>
   <header class="header">
     <div class="wrap header-wrap">
-      <div class="lang-switch" id="lang-switch" role="group" aria-label="Language / שפה / Langue">
-        <button type="button" class="lang-btn" data-lang="he" lang="he">עברית</button>
-        <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
-        <button type="button" class="lang-btn" data-lang="fr" lang="fr">Français</button>
+      <div class="header-top">
+        <span class="app-icon" aria-hidden="true">📖</span>
+        <h1 class="title" data-i18n="header.title">פסוק לשם</h1>
+        <button type="button" class="settings-btn" id="settings-btn" data-i18n-aria-label="settings.button" aria-label="הגדרות">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
       </div>
-      <h1 class="title" data-i18n="header.title">פסוק לשם</h1>
       <p class="subtitle" data-i18n="header.subtitle">מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות</p>
     </div>
   </header>
@@ -90,6 +94,31 @@
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!--
+    Native <dialog> rather than a hand-rolled overlay: focus trapping,
+    Escape-to-close, and the ::backdrop all come for free. method="dialog"
+    on the form means the close (✕) button needs no JS handler at all.
+    Holds the language switcher, moved here out of the header banner so the
+    header stays a plain icon + title (matching KanDOne's app-shell header).
+  -->
+  <dialog id="settings-dialog" class="settings-dialog">
+    <form method="dialog" class="settings-form">
+      <div class="settings-head">
+        <h2 data-i18n="settings.heading">הגדרות</h2>
+        <button type="submit" class="dialog-close" data-i18n-aria-label="settings.close" aria-label="סגירה">✕</button>
+      </div>
+
+      <section class="settings-section">
+        <h3 class="settings-section-title" data-i18n="settings.languageHeading">שפה</h3>
+        <div class="lang-switch" id="lang-switch" role="group" aria-label="Language / שפה / Langue">
+          <button type="button" class="lang-btn" data-lang="he" lang="he">עברית</button>
+          <button type="button" class="lang-btn" data-lang="en" lang="en">English</button>
+          <button type="button" class="lang-btn" data-lang="fr" lang="fr">Français</button>
+        </div>
+      </section>
+    </form>
+  </dialog>
 
   <script src="/i18n.js"></script>
   <script src="/app.js"></script>
