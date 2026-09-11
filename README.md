@@ -1,3 +1,5 @@
+<img src="static/icons/icon-192.png" alt="" width="88">
+
 # אות ואות — Tanakh verses for a name
 
 A mobile-first Hebrew web app for the custom of saying a verse that matches your
