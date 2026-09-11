@@ -22,6 +22,7 @@
   var form = document.getElementById("search-form");
   var input = document.getElementById("names");
   var submit = document.getElementById("submit");
+  var clearBtn = document.getElementById("clear");
   var results = document.getElementById("results");
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
@@ -627,6 +628,39 @@
 
   // --- Searching -------------------------------------------------------------
 
+  /*
+   * Back to a blank page, and to the bare URL.
+   *
+   * A search puts its query in the hash so results can be shared and the back
+   * button steps between them -- which also means the URL stays "dirty" after
+   * one, and reloading or bookmarking re-runs the old search. Clearing drops
+   * the hash with replaceState rather than pushState, so it tidies the address
+   * bar without adding a history entry of its own (pressing Back still returns
+   * to the previous search rather than to an empty page you just left).
+   */
+  function clearSearch() {
+    if (inFlight) {
+      inFlight.abort();
+      inFlight = null;
+    }
+    input.value = "";
+    lastSearchData = null;
+    results.innerHTML = "";
+    results.setAttribute("aria-busy", "false");
+    submit.disabled = false;
+    // The held-back verses were keyed by groups that no longer exist.
+    pending = Object.create(null);
+    history.replaceState(null, "", location.pathname + location.search);
+    syncClearButton();
+    input.focus();
+  }
+
+  // Only offered when there is something to clear, so it never sits there as
+  // dead weight on a first visit.
+  function syncClearButton() {
+    clearBtn.hidden = !input.value && !results.firstChild;
+  }
+
   function runSearch(query, pushHash) {
     query = (query || "").trim();
     if (!query) {
@@ -677,10 +711,16 @@
           results.setAttribute("aria-busy", "false");
         }
         disarmWaking();
+        syncClearButton();
       });
   }
 
   // --- Wiring ----------------------------------------------------------------
+
+  clearBtn.addEventListener("click", clearSearch);
+
+  // Keeps the button in step while typing, not just after a search.
+  input.addEventListener("input", syncClearButton);
 
   form.addEventListener("submit", function (event) {
     event.preventDefault();

@@ -280,6 +280,7 @@ body {
 }
 .input:focus-visible,
 .submit:focus-visible,
+.clear:focus-visible,
 .chip:focus-visible,
 .copy:focus-visible,
 .more:focus-visible,
@@ -288,6 +289,30 @@ body {
   outline: 2.5px solid var(--accent);
   outline-offset: 2px;
 }
+/* Clear: resets the search and drops the query from the URL. A quiet
+   companion to Search rather than a second primary action -- same height so
+   the row stays level, but outlined and square, and only shown when there is
+   something to clear (see syncClearButton in app.js). */
+.clear {
+  flex: 0 0 auto;
+  min-height: 48px;
+  min-width: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 1.05rem var(--font);
+  color: var(--text-soft);
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.clear:hover {
+  color: var(--text);
+  border-color: var(--text-soft);
+}
+
 .submit {
   flex: 0 0 auto;
   min-height: 48px;
