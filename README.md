@@ -363,20 +363,33 @@ Deta all take it as-is. Vercel is a poor fit for *this* half: its Python runtime
 is serverless, so the 1.5 s corpus load would run on cold starts — which is
 exactly why only the static frontend goes there.
 
-## Layout
+## Repository layout
 
+The full annotated tree is [`docs/STRUCTURE.md`](docs/STRUCTURE.md) — generated
+and drift-checked in CI, so it never goes stale. Architecture and per-module
+detail live in [`docs/HLD.md`](docs/HLD.md) and [`docs/LLD.md`](docs/LLD.md).
+
+<!-- BEGIN GENERATED TREE (depth=1 entries=all) -->
+```text
+ot-va-ot/
+├── app/
+├── data/
+├── scripts/
+├── static/
+├── tests/
+├── .ai
+├── .gitignore
+├── .gitmodules
+├── Dockerfile
+├── LICENSE
+├── README.md  # אות ואות — Tanakh verses for a name
+├── pytest.ini
+├── render.yaml
+├── requirements-dev.txt
+├── requirements.txt
+└── vercel.json
 ```
-app/hebrew.py           normalization, offsets, Hebrew numerals  (no deps)
-app/corpus.py           gzip load + the two search indexes
-app/search.py           letter match, name-in-verse, pairs, highlighting
-app/main.py             FastAPI routes; CORS allowlist; mounts static/ at "/"
-scripts/build_dataset.py   Sefaria export -> data/tanakh.json.gz (build-time)
-static/config.js        resolves the API base (same origin; /api is proxied on Vercel)
-static/manifest.json    PWA metadata, so the app installs to a home screen
-static/sw.js            service worker: installability + a cached app shell
-static/                 the UI: one page, one stylesheet, one script
-tests/                  pytest, against the real corpus
-```
+<!-- END GENERATED TREE -->
 
 ## Notes
 
