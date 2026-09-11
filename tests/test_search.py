@@ -354,7 +354,8 @@ class TestApi:
         """The frontend keys its i18n error text off these exact strings."""
         assert client.get("/api/search", params={"names": "  ,  "}).json()["code"] == "empty"
         assert client.get("/api/search", params={"names": "David"}).json()["code"] == "invalid_name"
-        assert client.get("/api/search", params={"names": "א, ב, ג, ד"}).json()["code"] == "too_many"
+        resp = client.get("/api/search", params={"names": "א, ב, ג, ד"})
+        assert resp.json()["code"] == "too_many"
 
     def test_random_verse_matches_the_name(self, client):
         body = client.get("/api/random", params={"name": "דוד"}).json()

@@ -194,7 +194,7 @@ def letter_positions(text: str) -> list[int]:
 class Word:
     """One word of a verse, with enough information to highlight it precisely."""
 
-    __slots__ = ("text", "start", "end", "positions")
+    __slots__ = ("end", "positions", "start", "text")
 
     def __init__(self, text: str, start: int, end: int, positions: list[int]):
         self.text = text           # normalized (letters only, finals folded)

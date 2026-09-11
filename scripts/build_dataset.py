@@ -19,9 +19,9 @@ License: Public Domain
 from __future__ import annotations
 
 import concurrent.futures
-import re
 import gzip
 import json
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -206,15 +206,19 @@ def fetch_rashi(section: str, book: str) -> list[list[list[str]]] | None:
     the 39 files today, but the corpus should still build if that changes).
     """
     url = rashi_url(section, book)
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing to fetch a non-https URL: {url}")
     try:
-        with urllib.request.urlopen(url, timeout=120) as response:
+        with urllib.request.urlopen(url, timeout=120) as response:  # nosec B310 - scheme checked above
             return json.loads(response.read().decode("utf-8"))["text"]
     except urllib.error.HTTPError as exc:
         print(f"  warning: no Rashi for {book}: HTTP {exc.code}", file=sys.stderr)
         return None
 
 
-def align_rashi(chapters: list[list[str]], rashi: list[list[list[str]]] | None, book: str) -> list[list[str]]:
+def align_rashi(
+    chapters: list[list[str]], rashi: list[list[list[str]]] | None, book: str
+) -> list[list[str]]:
     """Line Rashi's comments up with ``chapters``, one joined block per verse.
 
     Sefaria trims trailing empty verses off the end of each chapter's array --
@@ -263,8 +267,10 @@ def fetch_book(entry: tuple[int, tuple[str, str]]) -> dict:
     """Download and shape a single book. Returns a dict ready for the dataset."""
     order, (section, book) = entry
     url = book_url(section, book)
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing to fetch a non-https URL: {url}")
     try:
-        with urllib.request.urlopen(url, timeout=120) as response:
+        with urllib.request.urlopen(url, timeout=120) as response:  # nosec B310 - scheme checked above
             raw = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:  # pragma: no cover - network path
         raise SystemExit(f"failed to fetch {book}: HTTP {exc.code} for {url}") from exc
@@ -300,7 +306,10 @@ def main() -> int:
     if missing:
         raise SystemExit(f"BOOK_NAMES_FR is missing an entry for: {', '.join(missing)}")
 
-    print(f"Fetching {len(BOOKS)} book files (text + Rashi) from Sefaria's export bucket…", file=sys.stderr)
+    print(
+        f"Fetching {len(BOOKS)} book files (text + Rashi) from Sefaria's export bucket…",
+        file=sys.stderr,
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         books = list(pool.map(fetch_book, enumerate(BOOKS)))
@@ -331,7 +340,8 @@ def main() -> int:
     size_mb = DATA_PATH.stat().st_size / 1024 / 1024
     print(
         f"\nWrote {DATA_PATH.relative_to(Path.cwd())}: "
-        f"{len(books)} books, {verse_count:,} verses ({rashi_count:,} with Rashi), {size_mb:.2f} MB gzipped",
+        f"{len(books)} books, {verse_count:,} verses ({rashi_count:,} with Rashi), "
+        f"{size_mb:.2f} MB gzipped",
         file=sys.stderr,
     )
     return 0
