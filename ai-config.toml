@@ -10,7 +10,7 @@ name = "ot-va-ot"
 # frontend has no build step and no framework, so no "react" here.
 languages  = ["python", "javascript"]
 frameworks = []
-practices  = ["testing", "git-commits", "security", "architecture", "documentation"]
+practices  = ["testing", "git-commits", "security", "architecture", "documentation", "verification"]
 
 [tools]
 targets = ["claude", "cursor", "gemini", "copilot"]
