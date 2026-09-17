@@ -371,18 +371,26 @@ detail live in [`docs/HLD.md`](docs/HLD.md) and [`docs/LLD.md`](docs/LLD.md).
 
 <!-- BEGIN GENERATED TREE (depth=1 entries=all) -->
 ```text
-ot-va-ot/
+otvaot-clean/
+├── .github/
 ├── app/
 ├── data/
+├── docs/
 ├── scripts/
 ├── static/
 ├── tests/
 ├── .ai
 ├── .gitignore
 ├── .gitmodules
+├── AGENTS.md    # AGENTS.md
+├── CLAUDE.md    # AGENTS.md
 ├── Dockerfile
+├── GEMINI.md    # AGENTS.md
 ├── LICENSE
-├── README.md  # אות ואות — Tanakh verses for a name
+├── README.md    # אות ואות — Tanakh verses for a name
+├── SECURITY.md  # Security Policy
+├── ai-config.toml
+├── pyproject.toml
 ├── pytest.ini
 ├── render.yaml
 ├── requirements-dev.txt
