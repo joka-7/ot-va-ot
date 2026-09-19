@@ -6,7 +6,7 @@ to refresh it, and never edit between the markers by hand.
 
 <!-- BEGIN GENERATED TREE (depth=all entries=all) -->
 ```text
-otvaot-clean/
+ot-va-ot/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml

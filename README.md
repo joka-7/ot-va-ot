@@ -371,7 +371,7 @@ detail live in [`docs/HLD.md`](docs/HLD.md) and [`docs/LLD.md`](docs/LLD.md).
 
 <!-- BEGIN GENERATED TREE (depth=1 entries=all) -->
 ```text
-otvaot-clean/
+ot-va-ot/
 ├── .github/
 ├── app/
 ├── data/
