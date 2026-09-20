@@ -670,6 +670,11 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .footer-about summary { text-align: center; }
 .footer-about p { line-height: 1.5; }
 .footer-credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .4rem;
   margin-top: .9rem;
   margin-bottom: 0;
   font-size: .75rem;
@@ -677,6 +682,14 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .footer-credit a { color: var(--text-faint); text-decoration: underline; }
 .footer-credit a:hover { color: var(--accent-text); }
+.footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  margin-inline-start: .25rem;
+}
+.footer-links a { display: inline-flex; text-decoration: none; }
+.footer-links svg { display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
