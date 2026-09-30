@@ -75,7 +75,6 @@ var I18N = (function () {
       "group.exampleToggle": "דוגמה",
       "count.showingOf": "מציג {shown} מתוך {totalPhrase}",
       "pair.matches": { one: "התאמה אחת", other: "{n} התאמות" },
-      "footer.summary": "{versesPhrase}, {booksPhrase}.",
 
       "error.title": "שגיאה",
       "error.generic": "החיפוש נכשל",
@@ -87,11 +86,9 @@ var I18N = (function () {
         "נוסח המקרא: <strong>תנ״ך עם טעמי המקרא</strong> — מתוך " +
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (מקור: tanach.us), נחלת הכלל.",
-      "footer.custom": "המנהג: בסוף תפילת העמידה אומרים פסוק המתחיל באות הראשונה של השם ומסתיים באות האחרונה שלו.",
       "footer.aboutTitle": "עוד על המנהג",
-      "footer.credit": "נבנה על ידי",
+      "footer.credit": "נבנה על ידי joka-7",
       "footer.verses": { one: "פסוק אחד", two: "שני פסוקים", other: "{n} פסוקים" },
-      "footer.books": { one: "ספר אחד", two: "שני ספרים", other: "{n} ספרים" },
     },
 
     en: {
@@ -150,7 +147,6 @@ var I18N = (function () {
       "group.exampleToggle": "Example",
       "count.showingOf": "Showing {shown} of {totalPhrase}",
       "pair.matches": { one: "1 match", other: "{n} matches" },
-      "footer.summary": "{versesPhrase}, {booksPhrase}.",
 
       "error.title": "Error",
       "error.generic": "Search failed",
@@ -162,11 +158,9 @@ var I18N = (function () {
         "Biblical text: <strong>Tanach with Ta'amei Hamikra</strong> — from " +
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source: tanach.us), Public Domain.",
-      "footer.custom": "The custom: at the end of the Amidah, one recites a verse that begins with the first letter of one's name and ends with its last letter.",
       "footer.aboutTitle": "More about this custom (in Hebrew)",
-      "footer.credit": "Built by",
+      "footer.credit": "Built by joka-7",
       "footer.verses": { one: "1 verse", other: "{n} verses" },
-      "footer.books": { one: "1 book", other: "{n} books" },
     },
 
     fr: {
@@ -225,7 +219,6 @@ var I18N = (function () {
       "group.exampleToggle": "Exemple",
       "count.showingOf": "Affichage de {shown} sur {totalPhrase}",
       "pair.matches": { one: "1 correspondance", other: "{n} correspondances" },
-      "footer.summary": "{versesPhrase}, {booksPhrase}.",
 
       "error.title": "Erreur",
       "error.generic": "La recherche a échoué",
@@ -237,11 +230,9 @@ var I18N = (function () {
         "Texte biblique : <strong>Tanach avec Ta'amei Hamikra</strong> — provenant de " +
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source : tanach.us), domaine public.",
-      "footer.custom": "La coutume : à la fin de l'Amida, on récite un verset qui commence par la première lettre de son prénom et finit par sa dernière lettre.",
       "footer.aboutTitle": "En savoir plus sur cette coutume (en hébreu)",
-      "footer.credit": "Créé par",
+      "footer.credit": "Créé par joka-7",
       "footer.verses": { one: "1 verset", other: "{n} versets" },
-      "footer.books": { one: "1 livre", other: "{n} livres" },
     },
   };
 

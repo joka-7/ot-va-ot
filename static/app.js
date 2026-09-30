@@ -38,11 +38,9 @@
   var inFlight = null;
 
   // The current UI language, and enough state to redraw without a network
-  // round-trip when it changes: the last successful search response, and the
-  // last health totals for the footer line.
+  // round-trip when it changes: the last successful search response.
   var locale = loadLocale();
   var lastSearchData = null;
-  var lastHealth = null;
 
   function loadLocale() {
     try {
@@ -567,7 +565,6 @@
     input.placeholder = t(locale, "search.placeholder", { example: I18N.PLACEHOLDER_EXAMPLE });
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
-    renderFooterCount();
 
     var buttons = langSwitch.querySelectorAll(".lang-btn");
     for (var k = 0; k < buttons.length; k++) {
@@ -575,24 +572,6 @@
       buttons[k].classList.toggle("active", isActive);
       buttons[k].setAttribute("aria-pressed", isActive ? "true" : "false");
     }
-  }
-
-  // The Tanakh has 24 books by the traditional count. The API reports 39,
-  // since Samuel, Kings, Ezra-Nehemiah, Chronicles and the Twelve Minor
-  // Prophets are each split across multiple files there -- an internal
-  // detail of how the text is stored, not something to show the user.
-  var TRADITIONAL_BOOK_COUNT = 24;
-
-  function renderFooterCount() {
-    var target = document.getElementById("verse-count");
-    if (!lastHealth) {
-      target.textContent = "";
-      return;
-    }
-    target.textContent = t(locale, "footer.summary", {
-      versesPhrase: plural(locale, "footer.verses", lastHealth.verses),
-      booksPhrase: plural(locale, "footer.books", TRADITIONAL_BOOK_COUNT),
-    });
   }
 
   function setLocale(next) {
@@ -761,11 +740,7 @@
   var disarmHealthWaking = armWaking();
   apiFetch("/api/health")
     .then(function (r) { return r.json(); })
-    .then(function (health) {
-      lastHealth = health;
-      renderFooterCount();
-    })
-    .catch(function () { /* the footer count is decorative */ })
+    .catch(function () {})
     .then(disarmHealthWaking);
 
   var initial = fromHash();
