@@ -707,6 +707,12 @@ mark.name  { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .footer-links a:hover { background-color: var(--surface-2); }
 .footer-links a:active { background-color: var(--surface-2); transform: scale(.88); }
 .footer-links svg { display: block; }
+.settings-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-inline-start: 0;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
