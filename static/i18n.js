@@ -30,6 +30,7 @@ var I18N = (function () {
       "settings.heading": "הגדרות",
       "settings.close": "סגירה",
       "settings.languageHeading": "שפה",
+      "settings.linksHeading": "קישורים",
 
       "search.label": "שם לחיפוש",
       "search.placeholder": "לדוגמא: {example}",
@@ -107,6 +108,7 @@ var I18N = (function () {
       "settings.heading": "Settings",
       "settings.close": "Close",
       "settings.languageHeading": "Language",
+      "settings.linksHeading": "Links",
 
       "search.label": "Name to search",
       "search.placeholder": "e.g. {example}",
@@ -184,6 +186,7 @@ var I18N = (function () {
       "settings.heading": "Paramètres",
       "settings.close": "Fermer",
       "settings.languageHeading": "Langue",
+      "settings.linksHeading": "Liens",
 
       "search.label": "Prénom à rechercher",
       "search.placeholder": "par ex. {example}",
