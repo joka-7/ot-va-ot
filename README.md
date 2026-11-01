@@ -7,7 +7,8 @@ name: a verse whose **first letter** matches the name's first letter and whose
 **last letter** matches its last letter, traditionally recited at the end of the
 Amidah. It also finds verses that contain the name outright, and — for two or
 three names, comma-separated — pairs of **consecutive verses** matching two of
-them in order.
+them in order. A second mode, **text**, finds any word or phrase in the Tanakh,
+with or without niqqud.
 
 Everything runs from one small FastAPI service, with the full Tanakh bundled
 locally: no external API to depend on and no network access needed at runtime.
@@ -175,12 +176,27 @@ Jacob) turns up nothing for Abraham+Isaac, a near-miss for Abraham+Jacob
 (Proverbs 24:19, 21), and a genuine consecutive pair for Isaac+Jacob
 (Job 39:21–22).
 
+**Text search** (`/api/phrase`, the UI's "text" mode) is separate from all of the
+above: the input is ordinary text, so a comma is just punctuation, not a name
+separator. Every word of the query is matched inside one verse, never across a
+verse boundary, in one of two ways — **ordered** (the default: the words next to
+each other, in that order) or **anywhere** (all of them, in any order). Maqaf
+splits words, so `על פני` finds `עַל־פְּנֵי`. Results use the same two tiers as a
+name in a verse — `exact` (whole words) and `partial` (inside longer words) —
+and never overlap.
+
+Niqqud is optional, per word. A word typed without vowels matches however the
+verse points it; a word typed with vowels must match the verse's vowels too
+(`כֹּל` is not `כָּל`). Cantillation marks are never compared. A query needs at
+least two letters and at most 12 words.
+
 ## API
 
 The UI is a client of this API; nothing is private to it.
 
 ```http
 GET /api/search?names=אברהם,שרה&limit=100
+GET /api/phrase?q=בראשית ברא&ordered=true&limit=100
 GET /api/random?name=דוד
 GET /api/health
 ```
@@ -189,7 +205,21 @@ Names are separated by `,`, `،` or `;` — one name, or up to three. Errors com
 back as `{"error": "…", "code": "…"}` — `error` is a Hebrew message ready to
 display as-is; `code` (`empty` | `too_many` | `invalid_name` | `not_found`) is
 a stable string the frontend uses to show the same error in whichever of
-Hebrew/English/French the UI is currently in.
+Hebrew/English/French the UI is currently in. `/api/phrase` adds its own codes:
+`empty_text` | `invalid_phrase` | `too_short` | `too_long`.
+
+A text search answers with `exact` and `partial` groups of the same
+`{"total", "verses"}` shape, and a `query` echo:
+
+```jsonc
+{
+  "query": { "text": "בראשית ברא", "words": 2, "ordered": true, "niqqud": false },
+  "exact":   { "total": 1, "verses": [ … ] },
+  "partial": { "total": 0, "verses": [ … ] }
+}
+```
+
+A name search answers with:
 
 ```jsonc
 {
@@ -227,7 +257,7 @@ A verse:
   "ref": "בראשית ב׳:ד׳",          // the citation form -- always Hebrew gematria,
                                    // regardless of UI language (ט״ו and ט״ז included)
   "text": "אֵ֣לֶּה תוֹלְד֧וֹת …",
-  "highlights": [ { "start": 0, "end": 3, "kind": "first" },   // kind: first | last | name
+  "highlights": [ { "start": 0, "end": 3, "kind": "first" },   // kind: first | last | name | match
                   { "start": 112, "end": 113, "kind": "last" } ],
   "rashi": "<b>אלה.</b> האמורים למעלה: …"   // "" when Rashi wrote nothing on this verse
 }
@@ -287,7 +317,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-91 tests, run against the real committed corpus rather than a fixture — the point
+145 tests, run against the real committed corpus rather than a fixture — the point
 of most of them is that the actual Tanakh gives the expected answer: `אברהם`
 matches 297 verses, `שרה` 76, `דוד` 4, and `אברהם, שרה` has exactly one
 consecutive pair.

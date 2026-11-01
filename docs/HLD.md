@@ -11,7 +11,9 @@ ways: by *letters* (the verse opens with the name's first letter and closes
 with its last — the custom recited at the end of the Amidah), by
 *containment* (the name appears as a word in the verse, exact or with an
 attached prefix), and, for two or three names, by *pairs* of consecutive
-verses each matching one name. Every result carries highlight spans, a
+verses each matching one name. A separate *text* search finds a word or
+phrase anywhere in the Tanakh — consecutive words in order, or all the words
+in any order, optionally matching niqqud. Every result carries highlight spans, a
 citation in Hebrew gematira, and — where Rashi commented on that verse — his
 commentary, pre-cleaned to safe HTML.
 
@@ -39,6 +41,7 @@ flowchart TD
     Vercel["Vercel<br/>static/ mirror, proxies /api/*"]
     Main["app/main.py<br/>FastAPI: routing, CORS, validation, errors"]
     Search["app/search.py<br/>matching + response shaping"]
+    Phrase["app/phrase.py<br/>free-text word / phrase search"]
     Corpus["app/corpus.py<br/>Verse model + indexes"]
     Hebrew["app/hebrew.py<br/>normalization primitives"]
     Data[("data/tanakh.json.gz<br/>23,206 verses + Rashi, 3.2MB")]
@@ -49,6 +52,10 @@ flowchart TD
     Browser -->|"or via"| Vercel
     Vercel -->|"server-side proxy, no CORS"| Main
     Main --> Search
+    Main --> Phrase
+    Phrase -->|"serialize(), highlight shapes"| Search
+    Phrase --> Corpus
+    Phrase --> Hebrew
     Search --> Corpus
     Search --> Hebrew
     Corpus --> Hebrew
@@ -61,8 +68,9 @@ The dotted edges are deliberate: `build_dataset.py` is run by a maintainer
 to regenerate the corpus and is never invoked by the service. Nothing in the
 request path reaches the network.
 
-Module boundaries run one way — `main` → `search` → `corpus` → `hebrew` —
-and nothing calls back upward. `hebrew.py` is pure string manipulation with
+Module boundaries run one way — `main` → `phrase` / `search` → `corpus` →
+`hebrew`, with `phrase` borrowing only response shaping from `search` — and
+nothing calls back upward. `hebrew.py` is pure string manipulation with
 no knowledge of verses or HTTP.
 
 ## Dynamic view
@@ -105,6 +113,15 @@ verse ids and `by_word` (normalized word) → verse ids, so letter and
 exact-word lookups are dict hits. Pair search is the exception and does walk
 the verse list.
 
+Text search (`GET /api/phrase`) follows the same path as a name search —
+`parse` → search → `serialize` — but never uses those indexes. It makes one
+pass over the verse list, first discarding every verse whose letters do not
+contain each query word as a substring (a C-level check that removes almost
+all of them), then comparing word by word. Verses with niqqud in the query
+need each verse's pointed words, which are built on the first such search
+(about half a second) rather than at boot, since a search without vowels
+never needs them.
+
 The Render-cold-start problem is why the frontend is deployed twice rather
 than once: served only from Render, the *page itself* would wait on the
 wake, showing a blank screen. Served from Vercel, the page paints while its
@@ -145,6 +162,10 @@ message, because the frontend keys its translated error text off that code:
 | No Hebrew letters in a name | `invalid_name` |
 | More than `MAX_NAMES` (3) | `too_many` |
 | No matching verse for `/api/random` | `not_found` |
+| Empty or whitespace-only `/api/phrase` text | `empty_text` |
+| No Hebrew letters in `/api/phrase` text | `invalid_phrase` |
+| Fewer than 2 letters (`MIN_LETTERS`) | `too_short` |
+| Over 12 words or 200 characters | `too_long` |
 
 `limit` is constrained by FastAPI's `Query(ge=1, le=MAX_LIMIT)` at the
 boundary and clamped again inside `search()`, so a caller reaching the
@@ -152,13 +173,18 @@ function directly cannot exceed the cap either.
 
 ## Testing strategy
 
-91 tests cover 97% of `app/`, split by boundary rather than by layer:
+145 tests cover 98% of `app/`, split by boundary rather than by layer:
 
 - `tests/test_hebrew.py` exercises the normalization primitives directly.
 - `tests/test_search.py` covers the corpus and matching logic, and drives
   the HTTP surface through FastAPI's `TestClient`, including the cleaned-text
   regressions (parasha markers, ketiv/qere, the Rashi chapter-alignment
   fallback).
+- `tests/test_phrase.py` covers query validation, the word-matching rules
+  (ordered, anywhere, partial, niqqud), the two result tiers, highlights, and
+  the `/api/phrase` endpoint. One test asserts that pointed, plain and
+  highlight word lists stay index-aligned across the whole corpus, since
+  highlighting depends on it.
 - `tests/test_build_dataset.py` covers `clean_verse()` and
   `clean_rashi_comment()` directly against the editorial-apparatus cases
   documented in the README, without needing the real Sefaria export.

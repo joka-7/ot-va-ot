@@ -25,6 +25,7 @@ var I18N = (function () {
 
       "header.title": "אות ואות",
       "header.subtitle": "מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות",
+      "header.subtitle.text": "חיפוש מילה או משפט בתנ״ך",
 
       "settings.button": "הגדרות",
       "settings.heading": "הגדרות",
@@ -41,6 +42,15 @@ var I18N = (function () {
       "search.howTitle": "איך זה עובד?",
       "search.rule.noComma": "שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.",
       "search.rule.withComma": "שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.",
+      "search.modeAriaLabel": "סוג החיפוש",
+      "search.mode.name": "שם",
+      "search.mode.text": "טקסט",
+      "search.label.text": "מילה או משפט לחיפוש",
+      "search.placeholder.text": "לדוגמא: בראשית ברא",
+      "search.hint.text": "מילה אחת או כמה מילים. הפסיק הוא סימן פיסוק רגיל.",
+      "search.anyOrder": "כל המילים בפסוק, בכל סדר",
+      "search.rule.text.ordered": "כמה מילים — הן חייבות להופיע ברצף, באותו סדר, בתוך פסוק אחד. מקף מפריד בין מילים.",
+      "search.rule.text.niqqud": "אפשר להקליד עם ניקוד כדי לחפש צורה מסוימת, או בלי ניקוד כדי למצוא כל ניקוד.",
 
       "waking.message": "מעיר את השרת… בפעם הראשונה אחרי זמן מנוחה זה עלול לקחת כדקה.",
 
@@ -56,6 +66,14 @@ var I18N = (function () {
       "group.partialWord.desc": "כולל צורות עם אותיות שימוש (ו, ה, ב, כ, ל, מ, ש) וסיומות.",
       "group.empty.title": "לא נמצאו פסוקים עבור {name}",
       "group.empty.desc": "לא נמצא פסוק המתחיל באות {first} ומסתיים באות {last}.",
+      "phrase.exact.title": "הטקסט מופיע בפסוק",
+      "phrase.exact.desc.ordered": "המילים כמילים שלמות, ברצף ובסדר הזה.",
+      "phrase.exact.desc.anywhere": "כל המילים כמילים שלמות, בכל סדר.",
+      "phrase.partial.title": "הטקסט כחלק ממילים",
+      "phrase.ordered": "ברצף",
+      "phrase.anywhere": "בכל סדר",
+      "phrase.empty.title": "לא נמצאו פסוקים עבור {text}",
+      "phrase.empty.desc": "נסו פחות מילים, או חיפוש בלי ניקוד.",
 
       "pair.consecutive.title": "פסוקים סמוכים — {name1} ו{name2}",
       "pair.consecutive.desc": "פסוק אחרי פסוק: הראשון מתאים ל{name1}, והבא אחריו ל{name2}.",
@@ -82,6 +100,10 @@ var I18N = (function () {
       "error.code.empty": "לא הוזן שם לחיפוש",
       "error.code.too_many": "אפשר לחפש בין שם אחד לשלושה שמות",
       "error.code.invalid_name": "יש להזין שם באותיות עבריות",
+      "error.code.empty_text": "לא הוזן טקסט לחיפוש",
+      "error.code.invalid_phrase": "יש להזין טקסט באותיות עבריות",
+      "error.code.too_short": "יש להזין לפחות שתי אותיות",
+      "error.code.too_long": "הטקסט ארוך מדי",
 
       "footer.attributionHtml":
         "נוסח המקרא: <strong>תנ״ך עם טעמי המקרא</strong> — מתוך " +
@@ -103,6 +125,7 @@ var I18N = (function () {
 
       "header.title": "Ot va-Ot",
       "header.subtitle": "Find Tanakh verses that begin and end with the letters of the name/names",
+      "header.subtitle.text": "Search the Tanakh for a word or phrase",
 
       "settings.button": "Settings",
       "settings.heading": "Settings",
@@ -119,6 +142,15 @@ var I18N = (function () {
       "search.howTitle": "How does this work?",
       "search.rule.noComma": "Names without a comma — the first letter of the first name, the last letter of the last name.",
       "search.rule.withComma": "Names with a comma — search for consecutive verses of the names.",
+      "search.modeAriaLabel": "Search type",
+      "search.mode.name": "Name",
+      "search.mode.text": "Text",
+      "search.label.text": "Word or phrase to search",
+      "search.placeholder.text": "e.g. בראשית ברא",
+      "search.hint.text": "One word or several. A comma is ordinary punctuation here.",
+      "search.anyOrder": "All words in the verse, in any order",
+      "search.rule.text.ordered": "Several words — they must appear next to each other, in the same order, within one verse. A maqaf separates words.",
+      "search.rule.text.niqqud": "Type with niqqud to find one specific form, or without niqqud to match any vowels.",
 
       "waking.message": "Waking up the server… the first request after a while can take up to a minute.",
 
@@ -134,6 +166,14 @@ var I18N = (function () {
       "group.partialWord.desc": "Includes forms with attached prefixes (ו, ה, ב, כ, ל, מ, ש) and suffixes.",
       "group.empty.title": "No verses found for {name}",
       "group.empty.desc": "No verse begins with the letter {first} and ends with the letter {last}.",
+      "phrase.exact.title": "The Text Appears in the Verse",
+      "phrase.exact.desc.ordered": "The words as whole words, next to each other in this order.",
+      "phrase.exact.desc.anywhere": "All the words as whole words, in any order.",
+      "phrase.partial.title": "The Text as Part of Words",
+      "phrase.ordered": "In order",
+      "phrase.anywhere": "Any order",
+      "phrase.empty.title": "No verses found for {text}",
+      "phrase.empty.desc": "Try fewer words, or a search without niqqud.",
 
       "pair.consecutive.title": "Consecutive Verses — {name1} and {name2}",
       "pair.consecutive.desc": "Verse after verse: the first matches {name1}, and the one right after it matches {name2}.",
@@ -160,6 +200,10 @@ var I18N = (function () {
       "error.code.empty": "Enter a name to search",
       "error.code.too_many": "You can search for one, two, or three names, no more",
       "error.code.invalid_name": "Enter a name using Hebrew letters",
+      "error.code.empty_text": "Enter text to search",
+      "error.code.invalid_phrase": "Enter text using Hebrew letters",
+      "error.code.too_short": "Enter at least two letters",
+      "error.code.too_long": "The text is too long",
 
       "footer.attributionHtml":
         "Biblical text: <strong>Tanach with Ta'amei Hamikra</strong> — from " +
@@ -181,6 +225,7 @@ var I18N = (function () {
 
       "header.title": "Ot va-Ot",
       "header.subtitle": "Trouver les versets du Tanakh qui commencent et finissent par les lettres du prénom/des prénoms",
+      "header.subtitle.text": "Rechercher un mot ou une expression dans le Tanakh",
 
       "settings.button": "Paramètres",
       "settings.heading": "Paramètres",
@@ -197,6 +242,15 @@ var I18N = (function () {
       "search.howTitle": "Comment ça marche ?",
       "search.rule.noComma": "Prénoms sans virgule — première lettre du premier prénom, dernière lettre du dernier prénom.",
       "search.rule.withComma": "Prénoms avec une virgule — recherche de versets consécutifs des prénoms.",
+      "search.modeAriaLabel": "Type de recherche",
+      "search.mode.name": "Prénom",
+      "search.mode.text": "Texte",
+      "search.label.text": "Mot ou expression à rechercher",
+      "search.placeholder.text": "par ex. בראשית ברא",
+      "search.hint.text": "Un mot ou plusieurs. La virgule est ici une simple ponctuation.",
+      "search.anyOrder": "Tous les mots dans le verset, dans n'importe quel ordre",
+      "search.rule.text.ordered": "Plusieurs mots — ils doivent apparaître côte à côte, dans le même ordre, au sein d'un seul verset. Le maqaf sépare les mots.",
+      "search.rule.text.niqqud": "Saisissez avec les voyelles (niqqoud) pour trouver une forme précise, ou sans voyelles pour accepter toutes les formes.",
 
       "waking.message": "Réveil du serveur… la première requête après une pause peut prendre jusqu'à une minute.",
 
@@ -212,6 +266,14 @@ var I18N = (function () {
       "group.partialWord.desc": "Inclut les formes avec préfixes attachés (ו, ה, ב, כ, ל, מ, ש) et suffixes.",
       "group.empty.title": "Aucun verset trouvé pour {name}",
       "group.empty.desc": "Aucun verset ne commence par la lettre {first} et ne finit par la lettre {last}.",
+      "phrase.exact.title": "Le texte apparaît dans le verset",
+      "phrase.exact.desc.ordered": "Les mots entiers, côte à côte et dans cet ordre.",
+      "phrase.exact.desc.anywhere": "Tous les mots entiers, dans n'importe quel ordre.",
+      "phrase.partial.title": "Le texte au sein de mots",
+      "phrase.ordered": "Dans l'ordre",
+      "phrase.anywhere": "Sans ordre",
+      "phrase.empty.title": "Aucun verset trouvé pour {text}",
+      "phrase.empty.desc": "Essayez moins de mots, ou une recherche sans voyelles.",
 
       "pair.consecutive.title": "Versets consécutifs — {name1} et {name2}",
       "pair.consecutive.desc": "Verset après verset : le premier correspond à {name1}, et celui qui suit correspond à {name2}.",
@@ -238,6 +300,10 @@ var I18N = (function () {
       "error.code.empty": "Saisissez un prénom à rechercher",
       "error.code.too_many": "Vous pouvez rechercher un, deux ou trois prénoms, pas plus",
       "error.code.invalid_name": "Saisissez un prénom en lettres hébraïques",
+      "error.code.empty_text": "Saisissez un texte à rechercher",
+      "error.code.invalid_phrase": "Saisissez un texte en lettres hébraïques",
+      "error.code.too_short": "Saisissez au moins deux lettres",
+      "error.code.too_long": "Le texte est trop long",
 
       "footer.attributionHtml":
         "Texte biblique : <strong>Tanach avec Ta'amei Hamikra</strong> — provenant de " +

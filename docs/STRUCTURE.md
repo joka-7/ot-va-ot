@@ -17,6 +17,7 @@ ot-va-ot/
 │   ├── corpus.py                # Loading and indexing the Tanakh corpus.
 │   ├── hebrew.py                # Hebrew text normalization primitives.
 │   ├── main.py                  # FastAPI application.
+│   ├── phrase.py                # Free-text search: a word or phrase anywhere in the Tanakh.
 │   └── search.py                # Verse matching.
 ├── data/
 │   └── tanakh.json.gz
@@ -42,6 +43,7 @@ ot-va-ot/
 ├── tests/
 │   ├── test_build_dataset.py    # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
 │   ├── test_hebrew.py           # Tests for the Hebrew normalization primitives.
+│   ├── test_phrase.py           # Tests for free-text word and phrase search.
 │   └── test_search.py           # Tests for the corpus, the matching logic, and the HTTP API.
 ├── .ai
 ├── .gitignore

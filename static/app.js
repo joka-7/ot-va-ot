@@ -35,6 +35,11 @@
   var langSwitch = document.getElementById("lang-switch");
   var settingsBtn = document.getElementById("settings-btn");
   var settingsDialog = document.getElementById("settings-dialog");
+  var modeSwitch = document.getElementById("mode-switch");
+  var anyOrderLabel = document.getElementById("any-order-label");
+  var anyOrderBox = document.getElementById("any-order");
+  var examplesName = document.getElementById("examples");
+  var examplesText = document.getElementById("examples-text");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -47,6 +52,13 @@
   // round-trip when it changes: the last successful search response.
   var locale = loadLocale();
   var lastSearchData = null;
+
+  // What the search box means right now: "name" (letters of a name, the app's
+  // original purpose) or "text" (a word or phrase anywhere in the Tanakh).
+  // "anyOrder" only applies to text: all the words, in any order, rather than
+  // next to each other.
+  var mode = "name";
+  var anyOrder = false;
 
   function loadLocale() {
     try {
@@ -487,7 +499,45 @@
     return sections;
   }
 
+  /*
+   * Results of a text search: one header with the query, then the whole-word
+   * tier and the inside-a-longer-word tier -- the same two tiers (and the same
+   * group markup) the name search uses for "the name appears in the verse".
+   */
+  function renderPhrase(data) {
+    results.innerHTML = "";
+    pending = Object.create(null);
+
+    var header = el("div", "name-head");
+    header.appendChild(hebrewSpan("h2", null, data.query.text));
+    if (data.query.words > 1) {
+      header.appendChild(el("span", "name-letters", t(locale, data.query.ordered ? "phrase.ordered" : "phrase.anywhere")));
+    }
+    results.appendChild(header);
+
+    var exactDesc = data.query.ordered ? "phrase.exact.desc.ordered" : "phrase.exact.desc.anywhere";
+    var groups = [
+      renderGroup("phrase.exact.title", exactDesc, null, data.exact, null),
+      renderGroup("phrase.partial.title", "group.partialWord.desc", null, data.partial, null),
+    ].filter(Boolean);
+
+    if (!groups.length) {
+      results.appendChild(
+        notice(t(locale, "phrase.empty.title", { text: data.query.text }), t(locale, "phrase.empty.desc"))
+      );
+      return;
+    }
+    groups.forEach(function (group) {
+      results.appendChild(group);
+    });
+  }
+
   function render(data) {
+    if (data.exact) {
+      renderPhrase(data);
+      return;
+    }
+
     results.innerHTML = "";
     pending = Object.create(null);
 
@@ -559,16 +609,32 @@
     document.title = t(locale, "doc.title");
     document.getElementById("meta-description").setAttribute("content", t(locale, "meta.description"));
 
+    // An element may carry a second key, "data-i18n-text", used instead of
+    // "data-i18n" while the search is in text mode.
+    var textAttr = mode === "text" ? "data-i18n-text" : "data-i18n";
     var nodes = document.querySelectorAll("[data-i18n]");
     for (var i = 0; i < nodes.length; i++) {
-      nodes[i].textContent = t(locale, nodes[i].getAttribute("data-i18n"));
+      var key = nodes[i].getAttribute(nodes[i].hasAttribute(textAttr) ? textAttr : "data-i18n");
+      nodes[i].textContent = t(locale, key);
     }
     var ariaNodes = document.querySelectorAll("[data-i18n-aria-label]");
     for (var j = 0; j < ariaNodes.length; j++) {
       ariaNodes[j].setAttribute("aria-label", t(locale, ariaNodes[j].getAttribute("data-i18n-aria-label")));
     }
 
-    input.placeholder = t(locale, "search.placeholder", { example: I18N.PLACEHOLDER_EXAMPLE });
+    input.placeholder = mode === "text"
+      ? t(locale, "search.placeholder.text")
+      : t(locale, "search.placeholder", { example: I18N.PLACEHOLDER_EXAMPLE });
+
+    var modeButtons = modeSwitch.querySelectorAll(".mode-btn");
+    for (var m = 0; m < modeButtons.length; m++) {
+      var isMode = modeButtons[m].dataset.mode === mode;
+      modeButtons[m].classList.toggle("active", isMode);
+      modeButtons[m].setAttribute("aria-pressed", isMode ? "true" : "false");
+    }
+    examplesName.hidden = mode !== "name";
+    examplesText.hidden = mode !== "text";
+    anyOrderLabel.hidden = mode !== "text";
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
 
@@ -646,6 +712,35 @@
     clearBtn.hidden = !input.value && !results.firstChild;
   }
 
+  // The query lives in the URL hash, so results are shareable and the back
+  // button moves between searches. "#q=" is a name search (and always was, so
+  // old links keep working); "#t=" is a text search, with "&any=1" when the
+  // words may appear in any order.
+  function toHash(query) {
+    if (mode === "name") return "#q=" + encodeURIComponent(query);
+    return "#t=" + encodeURIComponent(query) + (anyOrder ? "&any=1" : "");
+  }
+
+  function fromHash() {
+    var match = /^#q=(.*)$/.exec(location.hash);
+    var state = null;
+    if (match) state = { mode: "name", query: match[1], anyOrder: false };
+    match = /^#t=([^&]*)(&any=1)?$/.exec(location.hash);
+    if (match) state = { mode: "text", query: match[1], anyOrder: Boolean(match[2]) };
+    if (!state) return null;
+    try {
+      state.query = decodeURIComponent(state.query);
+    } catch (err) {
+      return null; // a mangled link is treated as no link
+    }
+    return state;
+  }
+
+  function searchPath(query) {
+    if (mode === "name") return "/api/search?names=" + encodeURIComponent(query);
+    return "/api/phrase?q=" + encodeURIComponent(query) + "&ordered=" + (anyOrder ? "false" : "true");
+  }
+
   function runSearch(query, pushHash) {
     query = (query || "").trim();
     if (!query) {
@@ -655,7 +750,7 @@
 
     input.value = query;
     if (pushHash !== false) {
-      var encoded = "#q=" + encodeURIComponent(query);
+      var encoded = toHash(query);
       if (location.hash !== encoded) history.pushState(null, "", encoded);
     }
 
@@ -668,7 +763,7 @@
     renderSkeleton();
     var disarmWaking = armWaking();
 
-    apiFetch("/api/search?names=" + encodeURIComponent(query), { signal: controller.signal })
+    apiFetch(searchPath(query), { signal: controller.signal })
       .then(function (response) {
         return response.json().then(function (body) {
           if (!response.ok) {
@@ -713,21 +808,48 @@
     runSearch(input.value);
   });
 
-  document.getElementById("examples").addEventListener("click", function (event) {
+  function onChipClick(event) {
     var chip = event.target.closest(".chip");
     if (chip) runSearch(chip.dataset.q);
+  }
+  examplesName.addEventListener("click", onChipClick);
+  examplesText.addEventListener("click", onChipClick);
+
+  /*
+   * Switching what the box means. Whatever is on screen belongs to the other
+   * mode (a name in the box is not a phrase, and its results are not a
+   * phrase's), so the search is cleared rather than reinterpreted.
+   */
+  function setMode(next) {
+    if (next === mode) return;
+    mode = next;
+    clearSearch();
+    applyStaticTranslations();
+  }
+
+  modeSwitch.addEventListener("click", function (event) {
+    var button = event.target.closest(".mode-btn");
+    if (button) setMode(button.dataset.mode);
   });
 
-  // The query lives in the URL hash, so results are shareable and the back
-  // button moves between searches.
-  function fromHash() {
-    var match = /^#q=(.*)$/.exec(location.hash);
-    return match ? decodeURIComponent(match[1]) : "";
+  anyOrderBox.addEventListener("change", function () {
+    anyOrder = anyOrderBox.checked;
+    // Re-run in place only when there is a result to change.
+    if (lastSearchData) runSearch(input.value);
+  });
+
+  // Applies a mode and query that came from the URL rather than from a click.
+  function runFromHash(state) {
+    mode = state.mode;
+    anyOrder = state.anyOrder;
+    anyOrderBox.checked = anyOrder;
+    applyStaticTranslations();
+    runSearch(state.query, false);
   }
 
   window.addEventListener("popstate", function () {
-    var query = fromHash();
-    if (query) runSearch(query, false);
+    var state = fromHash();
+    if (state) runFromHash(state);
   });
 
   applyStaticTranslations();
@@ -750,5 +872,5 @@
     .then(disarmHealthWaking);
 
   var initial = fromHash();
-  if (initial) runSearch(initial, false);
+  if (initial) runFromHash(initial);
 })();

@@ -33,13 +33,17 @@
           </svg>
         </button>
       </div>
-      <p class="subtitle" data-i18n="header.subtitle">מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות</p>
+      <p class="subtitle" data-i18n="header.subtitle" data-i18n-text="header.subtitle.text">מציאת פסוקים בתנ״ך המתחילים ומסתיימים באותיות השם/שמות</p>
     </div>
   </header>
 
   <main class="wrap" id="main">
     <form class="search" id="search-form" autocomplete="off">
-      <label class="label" for="names" data-i18n="search.label">שם לחיפוש</label>
+      <div class="mode-switch" id="mode-switch" role="group" data-i18n-aria-label="search.modeAriaLabel" aria-label="סוג החיפוש">
+        <button type="button" class="mode-btn active" data-mode="name" aria-pressed="true" data-i18n="search.mode.name">שם</button>
+        <button type="button" class="mode-btn" data-mode="text" aria-pressed="false" data-i18n="search.mode.text">טקסט</button>
+      </div>
+      <label class="label" for="names" data-i18n="search.label" data-i18n-text="search.label.text">שם לחיפוש</label>
       <div class="field">
         <input
           class="input" id="names" name="names" type="text" dir="rtl"
@@ -52,11 +56,15 @@
           <span aria-hidden="true">&#10005;</span>
         </button>
       </div>
-      <p class="hint" id="hint" data-i18n="search.hint">שם אחד או שני/שלושה שמות, מופרדים בפסיק.</p>
+      <p class="hint" id="hint" data-i18n="search.hint" data-i18n-text="search.hint.text">שם אחד או שני/שלושה שמות, מופרדים בפסיק.</p>
+      <label class="any-order" id="any-order-label" hidden>
+        <input type="checkbox" id="any-order">
+        <span data-i18n="search.anyOrder">כל המילים בפסוק, בכל סדר</span>
+      </label>
       <details class="how-it-works">
         <summary data-i18n="search.howTitle">איך זה עובד?</summary>
-        <p data-i18n="search.rule.noComma">שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.</p>
-        <p data-i18n="search.rule.withComma">שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.</p>
+        <p data-i18n="search.rule.noComma" data-i18n-text="search.rule.text.ordered">שמות בלי פסיק — אות ראשונה של השם הראשון, אות אחרונה של השם האחרון.</p>
+        <p data-i18n="search.rule.withComma" data-i18n-text="search.rule.text.niqqud">שמות עם פסיק — חיפוש פסוקים עוקבים של השמות.</p>
       </details>
       <div class="chips" id="examples" role="group" data-i18n-aria-label="search.examplesAriaLabel" aria-label="דוגמאות">
         <button class="chip" type="button" dir="rtl" data-q="אברהם">אברהם</button>
@@ -67,6 +75,13 @@
         <button class="chip" type="button" dir="rtl" data-q="אברהם, יצחק">אברהם, יצחק</button>
         <button class="chip" type="button" dir="rtl" data-q="יצחק, רבקה">יצחק, רבקה</button>
         <button class="chip" type="button" dir="rtl" data-q="אברהם, יצחק, יעקב">אברהם, יצחק, יעקב</button>
+      </div>
+      <div class="chips" id="examples-text" role="group" data-i18n-aria-label="search.examplesAriaLabel" aria-label="דוגמאות" hidden>
+        <button class="chip" type="button" dir="rtl" data-q="בראשית ברא">בראשית ברא</button>
+        <button class="chip" type="button" dir="rtl" data-q="שמע ישראל">שמע ישראל</button>
+        <button class="chip" type="button" dir="rtl" data-q="ואהבת לרעך כמוך">ואהבת לרעך כמוך</button>
+        <button class="chip" type="button" dir="rtl" data-q="על פני">על פני</button>
+        <button class="chip" type="button" dir="rtl" data-q="יְהִי אוֹר">יְהִי אוֹר</button>
       </div>
     </form>
 
