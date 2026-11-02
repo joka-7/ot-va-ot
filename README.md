@@ -313,6 +313,10 @@ and `caretAt` in `static/app.js` map the tapped point back to a word without
 wrapping each word in its own element). Cantillation is dropped from what lands in
 the search box. This is the way to search a pointed form without typing vowels.
 
+In text mode a **"Niqqud keys"** toggle opens a row of vowel keys that insert a mark
+at the caret (`NIQQUD_KEYS` in `static/app.js`), for keyboards that cannot type
+niqqud. It is closed by default and hidden in name mode.
+
 Every verse card that has one also carries a collapsed **"פירוש רש״י"**
 disclosure (`.rashi` in `static/app.js`/`styles.css`, same native `<details>`
 pattern as the two above) — closed by default, so the card stays short until

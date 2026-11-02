@@ -40,6 +40,9 @@
   var anyOrderBox = document.getElementById("any-order");
   var examplesName = document.getElementById("examples");
   var examplesText = document.getElementById("examples-text");
+  var niqqudBox = document.getElementById("niqqud");
+  var niqqudToggle = document.getElementById("niqqud-toggle");
+  var niqqudPad = document.getElementById("niqqud-pad");
 
   // Verses held back behind a "show more" button, keyed by group id.
   var pending = Object.create(null);
@@ -637,6 +640,8 @@
     examplesName.hidden = mode !== "name";
     examplesText.hidden = mode !== "text";
     anyOrderLabel.hidden = mode !== "text";
+    niqqudBox.hidden = mode !== "text";
+    if (mode !== "text") setNiqqudPadOpen(false);
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
 
@@ -866,6 +871,60 @@
     if (at < 0) return;
     var word = wordAt(verse.textContent, at).replace(CANTILLATION, "");
     if (word) searchTappedWord(word);
+  });
+
+  // --- Niqqud keys -----------------------------------------------------------
+  //
+  // Most keyboards have no easy way to type vowels, so the text mode offers a
+  // row of keys that insert one at the caret, after the letter just typed. The
+  // names are the Hebrew terms and are not translated, like the verse text. The
+  // server normalizes the order of marks on a letter, so a dagesh typed before
+  // or after a vowel finds the same verses.
+
+  var NIQQUD_KEYS = [
+    ["\u05B0", "שְׁוָא"], ["\u05B1", "חֲטַף סגול"], ["\u05B2", "חֲטַף פתח"], ["\u05B3", "חֲטַף קמץ"],
+    ["\u05B4", "חִירִיק"], ["\u05B5", "צֵירֵי"], ["\u05B6", "סֶגּוֹל"], ["\u05B7", "פַּתָּח"],
+    ["\u05B8", "קָמָץ"], ["\u05B9", "חוֹלָם"], ["\u05BB", "קִבּוּץ"], ["\u05BC", "דָּגֵשׁ"],
+    ["\u05C1", "שִׁין ימנית"], ["\u05C2", "שִׂין שמאלית"],
+  ];
+  var DOTTED_CIRCLE = "\u25CC";
+
+  NIQQUD_KEYS.forEach(function (key) {
+    var button = el("button", "niqqud-key", DOTTED_CIRCLE + key[0]);
+    button.type = "button";
+    button.title = key[1];
+    button.setAttribute("aria-label", key[1]);
+    button.dataset.mark = key[0];
+    niqqudPad.appendChild(button);
+  });
+
+  function setNiqqudPadOpen(open) {
+    niqqudPad.hidden = !open;
+    niqqudToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function insertAtCaret(text) {
+    var start = input.selectionStart == null ? input.value.length : input.selectionStart;
+    var end = input.selectionEnd == null ? start : input.selectionEnd;
+    input.value = input.value.slice(0, start) + text + input.value.slice(end);
+    input.setSelectionRange(start + text.length, start + text.length);
+    input.focus();
+    syncClearButton();
+  }
+
+  niqqudToggle.addEventListener("click", function () {
+    setNiqqudPadOpen(niqqudPad.hidden);
+  });
+
+  // Pressing a key must not take focus from the box, or the caret (and on a
+  // phone the keyboard) would be lost with every vowel.
+  niqqudPad.addEventListener("mousedown", function (event) {
+    event.preventDefault();
+  });
+
+  niqqudPad.addEventListener("click", function (event) {
+    var key = event.target.closest(".niqqud-key");
+    if (key) insertAtCaret(key.dataset.mark);
   });
 
   // --- Wiring ----------------------------------------------------------------

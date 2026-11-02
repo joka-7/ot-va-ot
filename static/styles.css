@@ -189,7 +189,32 @@ body {
 }
 .any-order[hidden],
 .chips[hidden],
-.waking[hidden] { display: none; }
+.waking[hidden],
+.niqqud[hidden],
+.niqqud-pad[hidden] { display: none; }
+.niqqud { margin-top: .6rem; }
+.niqqud-toggle {
+  font: 500 .9rem var(--font);
+  color: var(--accent);
+  background: none;
+  border: 0;
+  padding: .35rem 0;
+  min-height: 36px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.niqqud-pad { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4rem; }
+.niqqud-key {
+  font: 2.1rem/1 var(--font-verse-vocalized);
+  min-width: 52px;
+  min-height: 52px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.niqqud-key:active { transform: scale(.96); }
 .any-order input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
 
 /* --- Language switch --- */
