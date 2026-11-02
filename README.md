@@ -292,10 +292,13 @@ input examples for a field that only ever accepts Hebrew names, not UI text.
 ## In-app help
 
 A collapsed **"How does this work?"** disclosure sits under the search hint
-(native `<details>`, so it needs no JS to open), explaining the two input
-rules: no comma is one compound name (first letter of the first word, last
-letter of the last word); a comma means separate names, and triggers the
-consecutive-verse search.
+(native `<details>`, so it needs no JS to open). Its first paragraph is the same
+in both modes and says there are two ways to search — by name and letters, or by
+free text. The rules after it follow the mode: for names, no comma is one
+compound name (first letter of the first word, last letter of the last word) and
+a comma means separate names, triggering the consecutive-verse search; for text,
+words must be next to each other unless "any order" is ticked, and niqqud is
+optional.
 
 Each result group can also carry a collapsed **"Example"** disclosure of its
 own (`I18N.example(locale, key)` in `static/i18n.js`) — closed by default, and

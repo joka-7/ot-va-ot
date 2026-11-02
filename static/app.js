@@ -765,9 +765,13 @@
 
     apiFetch(searchPath(query), { signal: controller.signal })
       .then(function (response) {
-        return response.json().then(function (body) {
+        // A server that predates /api/phrase answers 404 with a body that is not
+        // this API's error shape (or not JSON at all), so a failed parse is
+        // treated as an empty body rather than thrown.
+        return response.json().catch(function () { return {}; }).then(function (body) {
           if (!response.ok) {
-            var message = (body.code && t(locale, "error.code." + body.code)) || body.error || t(locale, "error.generic");
+            var unavailable = response.status === 404 && mode === "text" ? t(locale, "error.textUnavailable") : null;
+            var message = (body.code && t(locale, "error.code." + body.code)) || body.error || unavailable || t(locale, "error.generic");
             throw new Error(message);
           }
           return body;
