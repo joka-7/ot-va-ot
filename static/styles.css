@@ -533,6 +533,12 @@ body {
   /* Cantillation sits high above the line; a little extra room stops it
      colliding with the line above. */
   padding-block: .1rem;
+  cursor: pointer;
+}
+.tap-hint {
+  margin: 0 0 1rem;
+  font-size: .85rem;
+  color: var(--text-soft);
 }
 
 mark { background: none; color: inherit; border-radius: 4px; padding: 0 .1em; }

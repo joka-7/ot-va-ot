@@ -308,6 +308,11 @@ object under the relevant key (`group.letterMatch`, `group.exactWord`,
 `group.partialWord`, `pair.consecutive`, `pair.reversed`, `pair.nearMiss`) to
 have that group's toggle appear.
 
+Tapping a word in any verse searches that word as text, with its niqqud (`WORD_CHAR`
+and `caretAt` in `static/app.js` map the tapped point back to a word without
+wrapping each word in its own element). Cantillation is dropped from what lands in
+the search box. This is the way to search a pointed form without typing vowels.
+
 Every verse card that has one also carries a collapsed **"פירוש רש״י"**
 disclosure (`.rashi` in `static/app.js`/`styles.css`, same native `<details>`
 pattern as the two above) — closed by default, so the card stays short until
