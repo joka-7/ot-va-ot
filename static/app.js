@@ -507,6 +507,7 @@
   function renderPhrase(data) {
     results.innerHTML = "";
     pending = Object.create(null);
+    results.appendChild(el("p", "tap-hint", t(locale, "results.tapWordHint")));
 
     var header = el("div", "name-head");
     header.appendChild(hebrewSpan("h2", null, data.query.text));
@@ -540,6 +541,7 @@
 
     results.innerHTML = "";
     pending = Object.create(null);
+    results.appendChild(el("p", "tap-hint", t(locale, "results.tapWordHint")));
 
     var any = false;
 
@@ -798,6 +800,73 @@
         syncClearButton();
       });
   }
+
+  // --- Tap a word to search it ---------------------------------------------------
+  //
+  // A verse in the results can be tapped: the word under the finger is searched
+  // as text, with its niqqud, so there is no need to type vowels. The verse's DOM
+  // is left as the server's highlights built it (text nodes split around
+  // <mark>), so the tapped point is mapped back to an offset in the verse's
+  // plain text instead of wrapping every word in its own element.
+
+  // Letters and niqqud. Maqaf, paseq and sof pasuq are left out, so they end a word.
+  var WORD_CHAR = /[\u05D0-\u05EA\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/;
+  // Cantillation: shown in the verse, not typed into the search box.
+  var CANTILLATION = /[\u0591-\u05AF\u05BD\u05C0\u05C3-\u05C6]/g;
+
+  function caretAt(x, y) {
+    if (document.caretPositionFromPoint) {
+      var pos = document.caretPositionFromPoint(x, y);
+      return pos ? { node: pos.offsetNode, offset: pos.offset } : null;
+    }
+    if (document.caretRangeFromPoint) {
+      var range = document.caretRangeFromPoint(x, y);
+      return range ? { node: range.startContainer, offset: range.startOffset } : null;
+    }
+    return null;
+  }
+
+  function textOffsetIn(container, node, offset) {
+    if (node.nodeType !== Node.TEXT_NODE || !container.contains(node)) return -1;
+    var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    var before = 0;
+    while (walker.nextNode()) {
+      if (walker.currentNode === node) return before + offset;
+      before += walker.currentNode.nodeValue.length;
+    }
+    return -1;
+  }
+
+  function wordAt(text, offset) {
+    var start = offset;
+    var end = offset;
+    while (start > 0 && WORD_CHAR.test(text.charAt(start - 1))) start--;
+    while (end < text.length && WORD_CHAR.test(text.charAt(end))) end++;
+    return text.slice(start, end);
+  }
+
+  function searchTappedWord(word) {
+    if (mode !== "text") {
+      mode = "text";
+      applyStaticTranslations();
+    }
+    anyOrder = false;
+    anyOrderBox.checked = false;
+    runSearch(word);
+  }
+
+  results.addEventListener("click", function (event) {
+    var verse = event.target.closest(".verse");
+    if (!verse) return;
+    var selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return; // selecting text to copy, not tapping
+    var caret = caretAt(event.clientX, event.clientY);
+    if (!caret) return;
+    var at = textOffsetIn(verse, caret.node, caret.offset);
+    if (at < 0) return;
+    var word = wordAt(verse.textContent, at).replace(CANTILLATION, "");
+    if (word) searchTappedWord(word);
+  });
 
   // --- Wiring ----------------------------------------------------------------
 
