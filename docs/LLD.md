@@ -127,6 +127,55 @@ group, three give three.
 Constants: `DEFAULT_LIMIT = 100`, `MAX_LIMIT = 500`, `MAX_NAMES = 3`,
 `PAIR_LIMIT = 50`.
 
+## `app/phrase.py` — free-text search
+
+Text search, kept apart from `search.py` because the input means something
+different: a comma is punctuation here, not a name separator. It reuses
+`serialize()` and the `Highlight`/`Payload` shapes from `search.py` and
+nothing else of it.
+
+Constants: `MIN_LETTERS = 2`, `MAX_WORDS = 12`, `MAX_QUERY_LENGTH = 200`.
+Result limits are `search.py`'s `DEFAULT_LIMIT` / `MAX_LIMIT`.
+
+### Contracts
+
+| Name | Role |
+| --- | --- |
+| `InvalidPhrase(ValueError)` | A rejected query; `.code` is `empty_text`, `invalid_phrase`, `too_short` or `too_long` |
+| `QueryWord` | `plain` (letters, finals folded) and `pointed` (niqqud kept, accents dropped) — `pointed` is `None` when the word was typed without vowels |
+| `PhraseQuery` | `raw`, `words: tuple[QueryWord, ...]`, `ordered`; `PhraseQuery.parse(raw, ordered=True)` validates and raises `InvalidPhrase`; `uses_niqqud` |
+
+### Functions
+
+| Function | Returns |
+| --- | --- |
+| `pointed_words(text)` | Words with niqqud, no cantillation, marks in NFC order, finals folded |
+| `matched_word_indexes(query, plain, pointed, partial)` | Positions of the verse words that satisfy the query, `[]` for no match |
+| `search_phrase(corpus, query, limit)` | `{"query": {...}, "exact": group, "partial": group}` |
+
+`matched_word_indexes` is the matching rule. *Ordered*: the query words must
+equal (or, when `partial`, be contained in) consecutive verse words, and every
+occurrence is reported. *Anywhere*: each query word must match some verse
+word; all matching words are reported. A query word with niqqud is compared
+against the pointed form, one without against the plain form.
+
+`search_phrase` classifies each candidate verse once: an `exact` match wins,
+otherwise a `partial` one counts, so the groups never overlap. A verse is a
+candidate only if every query word is a substring of `verse.letters` — a
+necessary condition that removes almost every verse before the precise check.
+
+### Invariants
+
+- `pointed_words(text)`, `words(text)` and `word_spans(text)` split a text
+  into the same number of words. This holds by construction — the accent set
+  and the niqqud set together are exactly `hebrew.MARKS` — and a test checks
+  every mark and every verse. Highlighting indexes the three together.
+- The pointed index (`_pointed_index`, one entry per verse) is built lazily on
+  the first query with niqqud and cached for the process.
+- Highlights use `kind: "match"`. An exact match highlights the whole word; a
+  partial match highlights only the matched part, except with niqqud, where
+  it highlights the whole word rather than guess where inside it.
+
 ## `app/main.py` — HTTP boundary
 
 ### Wiring
@@ -152,6 +201,7 @@ rather than a stricter per-request check.
 | --- | --- | --- |
 | `GET /api/health` | — | `status`, `verses`, `books`, `version`, `source`, `license` |
 | `GET /api/search` | `names` (required), `limit` (1..500) | `query`, `names[]`, and `pairs` when ≥2 names |
+| `GET /api/phrase` | `q` (required), `ordered` (default `true`), `limit` (1..500) | `query`, `exact`, `partial` |
 | `GET /api/random` | `name` (required) | `{"name", "verse"}` — one random letter-match |
 | `GET /` + `/static/*` | — | The frontend, same origin |
 
@@ -164,8 +214,10 @@ One shape everywhere, raised as `HTTPException` and rendered by
 {"error": "<message in Hebrew>", "code": "<stable machine code>"}
 ```
 
-The `code` values (`empty`, `invalid_name`, `too_many`, `not_found`) are a
-contract with `static/i18n.js`, which selects translated text from them.
+The `code` values (`empty`, `invalid_name`, `too_many`, `not_found`, and for
+`/api/phrase` `empty_text`, `invalid_phrase`, `too_short`, `too_long`) are a
+contract with `static/i18n.js`, which selects translated text from them. The
+phrase codes' Hebrew messages live in `PHRASE_ERRORS`.
 
 `parse_names(raw)` splits on `,`، or `;`, drops blanks, and enforces
 `MAX_NAMES`.
@@ -197,6 +249,7 @@ Arrange–Act–Assert throughout, no mocking of the corpus.
 | --- | --- |
 | `tests/test_hebrew.py` | Every primitive, including the ט"ו/ט"ז gematira exception and mark boundaries |
 | `tests/test_search.py` | Index correctness, all three match kinds, pair search across chapter boundaries, the cleaned-text regressions, and the HTTP surface via `TestClient` — status codes, the error contract, `limit` clamping |
+| `tests/test_phrase.py` | Query validation, `matched_word_indexes` rules (ordered, anywhere, partial, niqqud) as a table, both result tiers against the real corpus, highlights, the index-alignment invariant, and the `/api/phrase` endpoint |
 | `tests/test_build_dataset.py` | `clean_verse()` and `clean_rashi_comment()` against the documented editorial-apparatus cases, without needing the real Sefaria export |
 
 The real dataset loads once per session in `test_search.py`. The trade is a

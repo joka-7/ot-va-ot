@@ -24,6 +24,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .corpus import load_corpus
+from .phrase import InvalidPhrase, PhraseQuery, search_phrase
 from .search import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
@@ -169,6 +170,30 @@ def search_endpoint(
 ) -> Payload:
     """Search the Tanakh for verses matching one or two names."""
     return search(load_corpus(), parse_names(names), limit=limit)
+
+
+PHRASE_ERRORS = {
+    "empty_text": "לא הוזן טקסט לחיפוש",
+    "invalid_phrase": "יש להזין טקסט באותיות עבריות",
+    "too_short": "יש להזין לפחות שתי אותיות",
+    "too_long": "הטקסט ארוך מדי",
+}
+
+
+@app.get("/api/phrase")
+def phrase_endpoint(
+    q: str = Query(..., description="A word or phrase to find in the Tanakh"),
+    ordered: bool = Query(True, description="True: consecutive words in order; False: anywhere"),
+    limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
+) -> Payload:
+    """Search the Tanakh for a word or phrase, with or without niqqud."""
+    try:
+        query = PhraseQuery.parse(q, ordered=ordered)
+    except InvalidPhrase as exc:
+        raise HTTPException(
+            status_code=400, detail=error(exc.code, PHRASE_ERRORS[exc.code])
+        ) from None
+    return search_phrase(load_corpus(), query, limit=limit)
 
 
 @app.get("/api/random")
