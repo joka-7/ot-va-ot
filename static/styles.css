@@ -188,7 +188,8 @@ body {
   cursor: pointer;
 }
 .any-order[hidden],
-.chips[hidden] { display: none; }
+.chips[hidden],
+.waking[hidden] { display: none; }
 .any-order input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
 
 /* --- Language switch --- */
