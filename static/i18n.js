@@ -31,6 +31,10 @@ var I18N = (function () {
       "settings.heading": "הגדרות",
       "settings.close": "סגירה",
       "settings.languageHeading": "שפה",
+      "settings.installHeading": "התקנה",
+      "install.button": "התקנה",
+      "install.iosHint": "כדי להתקין: הקישו על כפתור השיתוף ↗ בסרגל הכלים, ואז \"הוסף למסך הבית\".",
+      "install.genericHint": "כדי להתקין: פתחו את תפריט הדפדפן (⋮) ובחרו \"התקנת אפליקציה\" או \"הוספה למסך הבית\".",
 
       "search.label": "שם לחיפוש",
       "search.placeholder": "לדוגמא: {example}",
@@ -134,6 +138,10 @@ var I18N = (function () {
       "settings.heading": "Settings",
       "settings.close": "Close",
       "settings.languageHeading": "Language",
+      "settings.installHeading": "Install",
+      "install.button": "Install",
+      "install.iosHint": "To install: tap the Share button ↗ in the toolbar, then \"Add to Home Screen\".",
+      "install.genericHint": "To install: open your browser's menu (⋮) and choose \"Install app\" or \"Add to Home Screen\".",
 
       "search.label": "Name to search",
       "search.placeholder": "e.g. {example}",
@@ -237,6 +245,10 @@ var I18N = (function () {
       "settings.heading": "Paramètres",
       "settings.close": "Fermer",
       "settings.languageHeading": "Langue",
+      "settings.installHeading": "Installation",
+      "install.button": "Installer",
+      "install.iosHint": "Pour installer : appuyez sur le bouton Partager ↗ dans la barre d'outils, puis « Sur l'écran d'accueil ».",
+      "install.genericHint": "Pour installer : ouvrez le menu du navigateur (⋮) et choisissez « Installer l'application » ou « Ajouter à l'écran d'accueil ».",
 
       "search.label": "Prénom à rechercher",
       "search.placeholder": "par ex. {example}",

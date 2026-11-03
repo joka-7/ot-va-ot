@@ -288,6 +288,17 @@ body {
   padding-top: 1rem;
   border-top: 1px dashed var(--line);
 }
+.install-btn {
+  padding: .5rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.install-btn:hover { border-color: var(--text-soft); }
+.install-hint { margin: .6rem 0 0; font-size: .85rem; color: var(--text-soft); }
 .settings-section-title {
   margin: 0 0 .6rem;
   font-size: .85rem;
