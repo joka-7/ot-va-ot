@@ -54,8 +54,8 @@ var I18N = (function () {
       "search.label.text": "מילה או משפט לחיפוש",
       "search.placeholder.text": "לדוגמא: בראשית ברא",
       "search.hint.text": "מילה אחת או כמה מילים. הפסיק הוא סימן פיסוק רגיל.",
-      "search.anyOrder": "כל המילים בפסוק, בכל סדר",
-      "search.rule.text.ordered": "כמה מילים: הן צריכות להופיע צמודות, באותו סדר שכתבת, בתוך פסוק אחד. אם הסדר לא משנה, סמנו \"כל המילים בפסוק, בכל סדר\".",
+      "search.anyOrder": "כל המילים בפסוק, בכל סדר, גם אם לא צמודות",
+      "search.rule.text.ordered": "כמה מילים: כברירת מחדל הן צריכות להופיע צמודות, באותו סדר שכתבת, בתוך פסוק אחד. כדי לחפש בכל הפסוק, גם אם המילים לא צמודות ובכל סדר, סמנו \"כל המילים בפסוק, בכל סדר, גם אם לא צמודות\".",
       "search.rule.text.niqqud": "עם ניקוד (למשל בְּרֵאשִׁית) מוצאים רק את הצורה הזאת. בלי ניקוד מוצאים את המילה בכל ניקוד.",
 
       "waking.message": "מעיר את השרת… בפעם הראשונה אחרי זמן מנוחה זה עלול לקחת כדקה.",
@@ -161,8 +161,8 @@ var I18N = (function () {
       "search.label.text": "Word or phrase to search",
       "search.placeholder.text": "e.g. בראשית ברא",
       "search.hint.text": "One word or several. A comma is ordinary punctuation here.",
-      "search.anyOrder": "All words in the verse, in any order",
-      "search.rule.text.ordered": "Several words: they must appear right next to each other, in the order you typed, within one verse. If order doesn't matter, tick \"All words in the verse, in any order\".",
+      "search.anyOrder": "All words in the verse, in any order, even if not next to each other",
+      "search.rule.text.ordered": "Several words: by default they must appear right next to each other, in the order you typed, within one verse. To search the whole verse, even if the words are not next to each other and in any order, tick \"All words in the verse, in any order, even if not next to each other\".",
       "search.rule.text.niqqud": "With niqqud (for example בְּרֵאשִׁית) you find only that exact form. Without niqqud you find the word with any vowels.",
 
       "waking.message": "Waking up the server… the first request after a while can take up to a minute.",
@@ -268,8 +268,8 @@ var I18N = (function () {
       "search.label.text": "Mot ou expression à rechercher",
       "search.placeholder.text": "par ex. בראשית ברא",
       "search.hint.text": "Un mot ou plusieurs. La virgule est ici une simple ponctuation.",
-      "search.anyOrder": "Tous les mots dans le verset, dans n'importe quel ordre",
-      "search.rule.text.ordered": "Plusieurs mots : ils doivent apparaître côte à côte, dans l'ordre saisi, au sein d'un seul verset. Si l'ordre n'importe pas, cochez « Tous les mots dans le verset, dans n'importe quel ordre ».",
+      "search.anyOrder": "Tous les mots dans le verset, dans n'importe quel ordre, même s'ils ne sont pas côte à côte",
+      "search.rule.text.ordered": "Plusieurs mots : par défaut, ils doivent apparaître côte à côte, dans l'ordre saisi, au sein d'un seul verset. Pour chercher dans tout le verset, même si les mots ne sont pas côte à côte et dans n'importe quel ordre, cochez « Tous les mots dans le verset, dans n'importe quel ordre, même s'ils ne sont pas côte à côte ».",
       "search.rule.text.niqqud": "Avec les voyelles (par exemple בְּרֵאשִׁית), vous ne trouvez que cette forme exacte. Sans voyelles, vous trouvez le mot avec toutes les voyelles.",
 
       "waking.message": "Réveil du serveur… la première requête après une pause peut prendre jusqu'à une minute.",
