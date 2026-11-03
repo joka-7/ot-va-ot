@@ -667,6 +667,8 @@
       ariaNodes[j].setAttribute("aria-label", t(locale, ariaNodes[j].getAttribute("data-i18n-aria-label")));
     }
 
+    labelNiqqudKeys();
+
     input.placeholder = mode === "text"
       ? t(locale, "search.placeholder.text")
       : t(locale, "search.placeholder", { example: I18N.PLACEHOLDER_EXAMPLE });
@@ -970,22 +972,36 @@
   // server normalizes the order of marks on a letter, so a dagesh typed before
   // or after a vowel finds the same verses.
 
+  // [mark, key suffix of its `niqqud.name.*` label in i18n.js]
   var NIQQUD_KEYS = [
-    ["\u05B0", "שְׁוָא"], ["\u05B1", "חֲטַף סגול"], ["\u05B2", "חֲטַף פתח"], ["\u05B3", "חֲטַף קמץ"],
-    ["\u05B4", "חִירִיק"], ["\u05B5", "צֵירֵי"], ["\u05B6", "סֶגּוֹל"], ["\u05B7", "פַּתָּח"],
-    ["\u05B8", "קָמָץ"], ["\u05B9", "חוֹלָם"], ["\u05BB", "קִבּוּץ"], ["\u05BC", "דָּגֵשׁ"],
-    ["\u05C1", "שִׁין ימנית"], ["\u05C2", "שִׂין שמאלית"],
+    ["\u05B0", "B0"], ["\u05B1", "B1"], ["\u05B2", "B2"], ["\u05B3", "B3"],
+    ["\u05B4", "B4"], ["\u05B5", "B5"], ["\u05B6", "B6"], ["\u05B7", "B7"],
+    ["\u05B8", "B8"], ["\u05B9", "B9"], ["\u05BB", "BB"], ["\u05BC", "BC"],
+    ["\u05C1", "C1"], ["\u05C2", "C2"],
   ];
   var DOTTED_CIRCLE = "\u25CC";
+  var niqqudNames = [];
 
   NIQQUD_KEYS.forEach(function (key) {
-    var button = el("button", "niqqud-key", DOTTED_CIRCLE + key[0]);
+    var button = el("button", "niqqud-key");
     button.type = "button";
-    button.title = key[1];
-    button.setAttribute("aria-label", key[1]);
     button.dataset.mark = key[0];
+    button.appendChild(el("span", "niqqud-glyph", DOTTED_CIRCLE + key[0]));
+    var name = el("span", "niqqud-name");
+    button.appendChild(name);
+    niqqudNames.push([button, name, key[1]]);
     niqqudPad.appendChild(button);
   });
+
+  // The mark's name is shown under it, so a key is never only a shape to guess.
+  function labelNiqqudKeys() {
+    niqqudNames.forEach(function (entry) {
+      var label = t(locale, "niqqud.name." + entry[2]);
+      entry[1].textContent = label;
+      entry[0].title = label;
+      entry[0].setAttribute("aria-label", label);
+    });
+  }
 
   function setNiqqudPadOpen(open) {
     niqqudPad.hidden = !open;
