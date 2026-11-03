@@ -408,6 +408,7 @@
     if (!group || !group.total) return null;
 
     var section = el("section", "group");
+    section.dataset.total = group.total;
     var head = el("div", "group-head");
     head.appendChild(el("h3", "group-title", t(locale, titleKey)));
 
@@ -469,6 +470,7 @@
     if (!pairs || !pairs.length) return null;
 
     var section = el("section", "group");
+    section.dataset.total = pairs.length;
     var head = el("div", "group-head");
     head.appendChild(el("h3", "group-title", t(locale, titleKey, descVars)));
     head.appendChild(el("span", "group-count", plural(locale, "pair.matches", pairs.length)));
@@ -537,6 +539,7 @@
     groups.forEach(function (group) {
       results.appendChild(group);
     });
+    addSummary();
   }
 
   function render(data) {
@@ -591,6 +594,40 @@
         );
       }
     });
+    addSummary();
+  }
+
+  /*
+   * A strip of jump links at the top of the results, one per result group with
+   * its total, so the whole shape of the answer is visible without scrolling
+   * and any group is one tap away. Only worth showing when there is more than
+   * one group to choose between. In a multi-name search the group titles repeat
+   * per name, so each chip is prefixed with the name it belongs to.
+   */
+  function addSummary() {
+    var groups = Array.prototype.slice.call(results.querySelectorAll("section.group"));
+    if (groups.length < 2) return;
+
+    var nav = el("nav", "results-summary");
+    nav.setAttribute("aria-label", t(locale, "results.summaryAria"));
+    groups.forEach(function (group) {
+      var owner = group.previousElementSibling;
+      while (owner && !owner.classList.contains("name-head")) {
+        owner = owner.previousElementSibling;
+      }
+      var prefix = owner && owner.classList.contains("name-head") && results.querySelectorAll(".name-head").length > 1
+        ? owner.querySelector("h2").textContent + " · "
+        : "";
+      var title = group.querySelector(".group-title").textContent;
+      var chip = el("button", "summary-chip", prefix + title + " · " + I18N.formatNumber(locale, Number(group.dataset.total)));
+      chip.type = "button";
+      chip.addEventListener("click", function () {
+        var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        group.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+      });
+      nav.appendChild(chip);
+    });
+    results.insertBefore(nav, results.children[1] || null);
   }
 
   function notice(title, body, className) {
@@ -746,7 +783,9 @@
    * bar without adding a history entry of its own (pressing Back still returns
    * to the previous search rather than to an empty page you just left).
    */
-  function clearSearch() {
+  // `refocus === false` is for callers (a tab switch) that must not raise the
+  // phone keyboard; the clear button itself still returns focus to the box.
+  function clearSearch(refocus) {
     if (inFlight) {
       inFlight.abort();
       inFlight = null;
@@ -760,7 +799,7 @@
     pending = Object.create(null);
     history.replaceState(null, "", location.pathname + location.search);
     syncClearButton();
-    input.focus();
+    if (refocus !== false) input.focus();
   }
 
   // Only offered when there is something to clear, so it never sits there as
@@ -1005,7 +1044,7 @@
   function setMode(next) {
     if (next === mode) return;
     mode = next;
-    clearSearch();
+    clearSearch(false);
     applyStaticTranslations();
   }
 
