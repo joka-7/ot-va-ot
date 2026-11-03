@@ -740,19 +740,12 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .footer-about summary { text-align: center; }
 .footer-about p { line-height: 1.5; }
-.footer-credit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: .4rem;
-  margin-top: .9rem;
-  margin-bottom: 0;
+.settings-credit {
+  margin: 0 0 .4rem;
   font-size: .75rem;
   color: var(--text-faint);
+  text-align: center;
 }
-.footer-credit a { display: inline-flex; color: var(--text-faint); }
-.footer-credit a:hover { color: var(--accent-text); }
 .footer-links {
   display: inline-flex;
   align-items: center;
@@ -786,6 +779,8 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   justify-content: center;
   margin-inline-start: 0;
 }
+.settings-links a { color: var(--text-faint); }
+.settings-links a:hover { color: var(--accent-text); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

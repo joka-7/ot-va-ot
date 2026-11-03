@@ -31,7 +31,6 @@ var I18N = (function () {
       "settings.heading": "הגדרות",
       "settings.close": "סגירה",
       "settings.languageHeading": "שפה",
-      "settings.linksHeading": "קישורים",
 
       "search.label": "שם לחיפוש",
       "search.placeholder": "לדוגמא: {example}",
@@ -114,7 +113,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (מקור: tanach.us), נחלת הכלל.",
       "footer.aboutTitle": "עוד על המנהג",
-      "footer.credit": "נבנה על ידי joka-7",
+      "settings.credit": "נבנה על ידי joka-7",
       "footer.link.github": "GitHub",
       "footer.link.site": "אתר",
       "footer.link.repo": "קוד",
@@ -135,7 +134,6 @@ var I18N = (function () {
       "settings.heading": "Settings",
       "settings.close": "Close",
       "settings.languageHeading": "Language",
-      "settings.linksHeading": "Links",
 
       "search.label": "Name to search",
       "search.placeholder": "e.g. {example}",
@@ -218,7 +216,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source: tanach.us), Public Domain.",
       "footer.aboutTitle": "More about this custom (in Hebrew)",
-      "footer.credit": "Built by joka-7",
+      "settings.credit": "Built by joka-7",
       "footer.link.github": "GitHub",
       "footer.link.site": "Site",
       "footer.link.repo": "Code",
@@ -239,7 +237,6 @@ var I18N = (function () {
       "settings.heading": "Paramètres",
       "settings.close": "Fermer",
       "settings.languageHeading": "Langue",
-      "settings.linksHeading": "Liens",
 
       "search.label": "Prénom à rechercher",
       "search.placeholder": "par ex. {example}",
@@ -322,7 +319,7 @@ var I18N = (function () {
         "<a href=\"https://github.com/Sefaria/Sefaria-Export\" rel=\"noopener noreferrer\" target=\"_blank\">Sefaria</a>" +
         " (source : tanach.us), domaine public.",
       "footer.aboutTitle": "En savoir plus sur cette coutume (en hébreu)",
-      "footer.credit": "Créé par joka-7",
+      "settings.credit": "Créé par joka-7",
       "footer.link.github": "GitHub",
       "footer.link.site": "Site",
       "footer.link.repo": "Code",
