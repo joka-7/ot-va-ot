@@ -33,6 +33,9 @@
   var toastEl = document.getElementById("toast");
   var wakingEl = document.getElementById("waking");
   var langSwitch = document.getElementById("lang-switch");
+  var installSection = document.getElementById("install-section");
+  var installBtn = document.getElementById("install-btn");
+  var installHint = document.getElementById("install-hint");
   var settingsBtn = document.getElementById("settings-btn");
   var settingsDialog = document.getElementById("settings-dialog");
   var modeSwitch = document.getElementById("mode-switch");
@@ -658,6 +661,7 @@
     locale = next;
     saveLocale(locale);
     applyStaticTranslations();
+    installHint.hidden = true;
     // Redraw the current results in the new language without a network
     // round-trip -- the data itself doesn't change, only its labels.
     if (lastSearchData) render(lastSearchData);
@@ -683,6 +687,52 @@
   }
 
   settingsBtn.addEventListener("click", openSettings);
+
+  // --- Install (Add to Home Screen) ---------------------------------------
+  //
+  // Lives in Settings and is shown whenever the app isn't already running
+  // standalone. `beforeinstallprompt` is unreliable (engagement heuristics,
+  // non-Chrome browsers, in-app webviews), so a tap always does something:
+  // the native prompt if captured, otherwise an inline how-to for the browser.
+  // The hint is inline rather than a toast because the modal dialog sits above it.
+
+  var deferredInstallPrompt = null;
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  if (!isStandalone()) installSection.hidden = false;
+
+  window.addEventListener("beforeinstallprompt", function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+  });
+
+  installBtn.addEventListener("click", function () {
+    if (deferredInstallPrompt) {
+      var prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      prompt.prompt();
+      prompt.userChoice
+        .then(function (choice) {
+          if (choice.outcome === "accepted") installSection.hidden = true;
+        })
+        .catch(function () { /* left visible -- tapping again just retries */ });
+      return;
+    }
+    installHint.textContent = t(locale, isIOS() ? "install.iosHint" : "install.genericHint");
+    installHint.hidden = false;
+  });
+
+  window.addEventListener("appinstalled", function () {
+    installSection.hidden = true;
+    deferredInstallPrompt = null;
+  });
 
   // --- Searching -------------------------------------------------------------
 
