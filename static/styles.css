@@ -573,8 +573,12 @@ body {
 }
 .tap-hint {
   margin: 0 0 1rem;
-  font-size: .85rem;
-  color: var(--text-soft);
+  padding: .6rem .9rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: .95rem;
+  font-weight: 700;
 }
 
 mark { background: none; color: inherit; border-radius: 4px; padding: 0 .1em; }
@@ -801,20 +805,16 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   }
 }
 
-/* Jump links to each result group. Sticky so another group is always one tap
-   away; a single scrollable row so it costs one line of a phone screen. */
+/* Jump links to each result group. The chips wrap, so every group is visible
+   without sideways scrolling. Sticky only where there is room for that to be
+   cheap; on a phone the wrapped rows would cover too much of the results. */
 .results-summary {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   display: flex;
+  flex-wrap: wrap;
   gap: .4rem;
   padding: .5rem 0;
-  overflow-x: auto;
   background: var(--bg);
-  scrollbar-width: none;
 }
-.results-summary::-webkit-scrollbar { display: none; }
 .summary-chip {
   flex: none;
   padding: .35rem .8rem;
@@ -829,4 +829,7 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .summary-chip:hover { border-color: var(--accent); }
 .summary-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.group { scroll-margin-top: 3.2rem; }
+@media (min-width: 700px) {
+  .results-summary { position: sticky; top: 0; z-index: 5; }
+  .group { scroll-margin-top: 3.2rem; }
+}

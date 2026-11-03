@@ -291,8 +291,9 @@ input examples for a field that only ever accepts Hebrew names, not UI text.
 
 ## Results summary
 
-When a search returns two or more result groups, a sticky strip of chips sits at
-the top of the results (`addSummary` in `static/app.js`): one chip per group with
+When a search returns two or more result groups, a strip of chips sits at
+the top of the results (wrapping onto extra lines so none is hidden off-screen;
+sticky on wide screens only) (`addSummary` in `static/app.js`): one chip per group with
 its total, e.g. "השם מופיע בפסוק · 128", and a tap scrolls to that group. In a
 multi-name search each chip is prefixed with the name it belongs to. A single
 group gets no strip, since its own header already shows the count.
