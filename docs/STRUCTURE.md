@@ -38,6 +38,7 @@ ot-va-ot/
 │   ├── i18n.js
 │   ├── index.html
 │   ├── manifest.json
+│   ├── privacy.html
 │   ├── styles.css
 │   └── sw.js
 ├── tests/
