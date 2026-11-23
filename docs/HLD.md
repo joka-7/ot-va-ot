@@ -15,7 +15,9 @@ verses each matching one name. A separate *text* search finds a word or
 phrase anywhere in the Tanakh — consecutive words in order, or all the words
 in any order, optionally matching niqqud. Every result carries highlight spans, a
 citation in Hebrew gematira, and — where Rashi commented on that verse — his
-commentary, pre-cleaned to safe HTML.
+commentary, pre-cleaned to safe HTML. Any chapter can also be *read* straight
+through, verse by verse with Rashi on demand, and a search result links to its
+chapter.
 
 **Non-functional.**
 
@@ -42,6 +44,7 @@ flowchart TD
     Main["app/main.py<br/>FastAPI: routing, CORS, validation, errors"]
     Search["app/search.py<br/>matching + response shaping"]
     Phrase["app/phrase.py<br/>free-text word / phrase search"]
+    Reader["app/reader.py<br/>one chapter and its neighbours"]
     Corpus["app/corpus.py<br/>Verse model + indexes"]
     Hebrew["app/hebrew.py<br/>normalization primitives"]
     Data[("data/tanakh.json.gz<br/>23,206 verses + Rashi, 3.2MB")]
@@ -53,6 +56,10 @@ flowchart TD
     Vercel -->|"server-side proxy, no CORS"| Main
     Main --> Search
     Main --> Phrase
+    Main -->|"GET /api/chapter, /api/books"| Reader
+    Reader -->|"Payload type"| Search
+    Reader --> Corpus
+    Reader --> Hebrew
     Phrase -->|"serialize(), highlight shapes"| Search
     Phrase --> Corpus
     Phrase --> Hebrew
@@ -68,8 +75,9 @@ The dotted edges are deliberate: `build_dataset.py` is run by a maintainer
 to regenerate the corpus and is never invoked by the service. Nothing in the
 request path reaches the network.
 
-Module boundaries run one way — `main` → `phrase` / `search` → `corpus` →
-`hebrew`, with `phrase` borrowing only response shaping from `search` — and
+Module boundaries run one way — `main` → `reader` / `phrase` / `search` →
+`corpus` → `hebrew`, with `phrase` and `reader` borrowing only the `Payload`
+type (and, for `phrase`, response shaping) from `search` — and
 nothing calls back upward. `hebrew.py` is pure string manipulation with
 no knowledge of verses or HTTP.
 

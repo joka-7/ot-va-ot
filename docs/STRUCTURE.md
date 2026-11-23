@@ -18,6 +18,7 @@ ot-va-ot/
 │   ├── hebrew.py                # Hebrew text normalization primitives.
 │   ├── main.py                  # FastAPI application.
 │   ├── phrase.py                # Free-text search: a word or phrase anywhere in the Tanakh.
+│   ├── reader.py                # Reading one chapter of the Tanakh: its verses, and the chapters on either…
 │   └── search.py                # Verse matching.
 ├── data/
 │   └── tanakh.json.gz
@@ -45,6 +46,7 @@ ot-va-ot/
 │   ├── test_build_dataset.py    # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
 │   ├── test_hebrew.py           # Tests for the Hebrew normalization primitives.
 │   ├── test_phrase.py           # Tests for free-text word and phrase search.
+│   ├── test_reader.py           # Tests for app/reader.py: reading one chapter of the Tanakh, on the real data.
 │   └── test_search.py           # Tests for the corpus, the matching logic, and the HTTP API.
 ├── .ai
 ├── .gitignore

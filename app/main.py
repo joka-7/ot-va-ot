@@ -25,6 +25,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .corpus import load_corpus
 from .phrase import InvalidPhrase, PhraseQuery, search_phrase
+from .reader import ReaderError, chapter_page, list_books
 from .search import (
     DEFAULT_LIMIT,
     MAX_LIMIT,
@@ -194,6 +195,33 @@ def phrase_endpoint(
             status_code=400, detail=error(exc.code, PHRASE_ERRORS[exc.code])
         ) from None
     return search_phrase(load_corpus(), query, limit=limit)
+
+
+@app.get("/api/books")
+def books_endpoint() -> Payload:
+    """The books and their chapter counts, for the reader's pickers."""
+    return {"books": list_books(load_corpus())}
+
+
+READER_ERRORS = {
+    "unknown_book": "הספר המבוקש אינו קיים",
+    "chapter_not_found": "הפרק המבוקש אינו קיים",
+}
+
+
+@app.get("/api/chapter")
+def chapter_endpoint(
+    book: str = Query(..., description="The book, by Hebrew name; see /api/books"),
+    chapter: int = Query(..., ge=1, le=999, description="The chapter number"),
+) -> Payload:
+    """One chapter's verses, with Rashi, for reading it straight through."""
+    try:
+        page = chapter_page(load_corpus(), book, chapter)
+    except ReaderError as exc:
+        raise HTTPException(
+            status_code=404, detail=error(exc.code, READER_ERRORS[exc.code])
+        ) from None
+    return page.as_dict()
 
 
 @app.get("/api/random")

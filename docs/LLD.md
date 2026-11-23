@@ -60,12 +60,16 @@ Rashi wrote nothing on that verse.
 Corpus(dataset: dict[str, Any])
 ```
 
-Builds two indexes while walking the verses:
+Builds two indexes while walking the verses, and records where each chapter sits:
 
 | Index | Type | Serves |
 | --- | --- | --- |
 | `by_letter_pair` | `dict[tuple[str, str], list[int]]` | `letter_matches(first, last)` |
 | `by_word` | `dict[str, list[int]]` | `exact_word_matches(name)` |
+| `chapter_spans` | `dict[tuple[int, int], tuple[int, int]]` | `(book_index, chapter)` → the half-open range of verse ids it covers; read by `app/reader.py` |
+| `chapter_order` | `list[tuple[int, int]]` | every `(book_index, chapter)` in reading order, so a chapter's neighbours can run on across books |
+
+Each entry of `Corpus.books` also carries `chapters`, its chapter count.
 
 | Method | Contract |
 | --- | --- |
@@ -126,6 +130,25 @@ group, three give three.
 
 Constants: `DEFAULT_LIMIT = 100`, `MAX_LIMIT = 500`, `MAX_NAMES = 3`,
 `PAIR_LIMIT = 50`.
+
+## `app/reader.py` — one chapter of the Tanakh
+
+`chapter_page(corpus, book_he, chapter)` returns a `ChapterPage`: the chapter's
+`Verse`s in reading order (a slice of `Corpus.verses` by `chapter_spans`), and the
+`previous` and `next` chapters as `ChapterRef(book, chapter)`, which run on across
+a book boundary and are `None` only at the very start and end. Its `as_dict()` is
+the JSON of `GET /api/chapter`: `book` (`he`/`en`/`fr`), `section`, `chapter`,
+`chapterHe`, `ref` (the chapter's Hebrew citation), `verses[]` of `verse`,
+`verseHe`, `text` and `rashi` (pre-cleaned HTML, `""` where Rashi wrote nothing),
+and `previous`/`next` (`{book, chapter}` or `null`).
+
+`list_books(corpus)` is `GET /api/books`: per book its names, `section`, `chapters`
+count and `chaptersHe`, the Hebrew numeral of each chapter, from `he_number`, so
+the client carries no gematria of its own. A book is looked up by its Hebrew name,
+which is unique across the 39 files.
+
+`ReaderError(LookupError)` carries a stable `code`, the same pattern as
+`InvalidPhrase`: `unknown_book` or `chapter_not_found`.
 
 ## `app/phrase.py` — free-text search
 
@@ -203,6 +226,8 @@ rather than a stricter per-request check.
 | `GET /api/search` | `names` (required), `limit` (1..500) | `query`, `names[]`, and `pairs` when ≥2 names |
 | `GET /api/phrase` | `q` (required), `ordered` (default `true`), `limit` (1..500) | `query`, `exact`, `partial` |
 | `GET /api/random` | `name` (required) | `{"name", "verse"}` — one random letter-match |
+| `GET /api/books` | — | `books[]` of `he`, `en`, `fr`, `section`, `chapters`, `chaptersHe[]` |
+| `GET /api/chapter` | `book` (Hebrew name, required), `chapter` (1..999, required) | `book`, `section`, `chapter`, `chapterHe`, `ref`, `verses[]`, `previous`, `next` — see `app/reader.py` |
 | `GET /` + `/static/*` | — | The frontend, same origin |
 
 ### Error contract
@@ -215,7 +240,8 @@ One shape everywhere, raised as `HTTPException` and rendered by
 ```
 
 The `code` values (`empty`, `invalid_name`, `too_many`, `not_found`, and for
-`/api/phrase` `empty_text`, `invalid_phrase`, `too_short`, `too_long`) are a
+`/api/phrase` `empty_text`, `invalid_phrase`, `too_short`, `too_long`;
+`/api/chapter` `unknown_book`, `chapter_not_found`) are a
 contract with `static/i18n.js`, which selects translated text from them. The
 phrase codes' Hebrew messages live in `PHRASE_ERRORS`.
 
@@ -249,6 +275,7 @@ Arrange–Act–Assert throughout, no mocking of the corpus.
 | --- | --- |
 | `tests/test_hebrew.py` | Every primitive, including the ט"ו/ט"ז gematira exception and mark boundaries |
 | `tests/test_search.py` | Index correctness, all three match kinds, pair search across chapter boundaries, the cleaned-text regressions, and the HTTP surface via `TestClient` — status codes, the error contract, `limit` clamping |
+| `tests/test_reader.py` | A chapter's verses and neighbours at the start, middle and end of the Tanakh and across a book boundary, every error with its code, the JSON shape, Rashi present and absent, and the book listing with its Hebrew numerals, on the real data |
 | `tests/test_phrase.py` | Query validation, `matched_word_indexes` rules (ordered, anywhere, partial, niqqud) as a table, both result tiers against the real corpus, highlights, the index-alignment invariant, and the `/api/phrase` endpoint |
 | `tests/test_build_dataset.py` | `clean_verse()` and `clean_rashi_comment()` against the documented editorial-apparatus cases, without needing the real Sefaria export |
 
