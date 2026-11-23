@@ -54,6 +54,10 @@
   // Lets a new search cancel the request still in flight behind it.
   var inFlight = null;
 
+  // The hash of the search whose results are on screen, so the Search tab can put
+  // it back after a visit to the reader.
+  var searchHash = "";
+
   // The current UI language, and enough state to redraw without a network
   // round-trip when it changes: the last successful search response.
   var locale = loadLocale();
@@ -375,6 +379,7 @@
     var foot = el("div", "card-foot");
     foot.appendChild(copyButton(verse));
     foot.appendChild(shareButton(verse));
+    foot.appendChild(readerLink(verse));
     card.appendChild(foot);
 
     var rashi = rashiDisclosure(verse);
@@ -685,6 +690,9 @@
     niqqudBox.hidden = mode !== "text";
     if (mode !== "text") setNiqqudPadOpen(false);
 
+    if (readerBooks) populateReaderBooks();
+    if (readerData) renderReaderChapter(readerData);
+
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
 
     var buttons = langSwitch.querySelectorAll(".lang-btn");
@@ -799,6 +807,7 @@
     submit.disabled = false;
     // The held-back verses were keyed by groups that no longer exist.
     pending = Object.create(null);
+    searchHash = "";
     history.replaceState(null, "", location.pathname + location.search);
     syncClearButton();
     if (refocus !== false) input.focus();
@@ -847,9 +856,10 @@
     }
 
     input.value = query;
+    showView("search");
+    searchHash = toHash(query);
     if (pushHash !== false) {
-      var encoded = toHash(query);
-      if (location.hash !== encoded) history.pushState(null, "", encoded);
+      if (location.hash !== searchHash) history.pushState(null, "", searchHash);
     }
 
     if (inFlight) inFlight.abort();
@@ -1075,6 +1085,309 @@
     if (lastSearchData) runSearch(input.value);
   });
 
+  // --- Reader ------------------------------------------------------------
+  //
+  // One chapter of the Tanakh read straight through (GET /api/chapter), with Rashi
+  // on the verses he wrote on. The chapter being read is in the hash
+  // (#/read/<book>/<chapter>[/<verse>]), so it can be linked to and the back button
+  // steps between chapters; the last chapter read is remembered, and the Read tab
+  // reopens it.
+
+  var READER_POSITION_KEY = "pasuk-leshem:reader-position";
+  var READER_RASHI_KEY = "pasuk-leshem:reader-rashi";
+
+  var viewTabs = document.getElementById("view-tabs");
+  var readerEl = document.getElementById("reader");
+  var readerBookSelect = document.getElementById("reader-book");
+  var readerChapterSelect = document.getElementById("reader-chapter");
+  var readerRashiCheckbox = document.getElementById("reader-rashi");
+  var readerPageEl = document.getElementById("reader-page");
+
+  // GET /api/books, loaded the first time the reader opens.
+  var readerBooks = null;
+  var readerPosition = null; // {book, chapter, verse?} being shown
+  var readerGood = null; // the last position that loaded, to fall back to when one does not
+  var readerData = null; // the last /api/chapter response, kept to redraw on a language switch
+  var readerRequest = 0; // a slower, older response never replaces a newer one
+
+  function loadReaderPosition() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(READER_POSITION_KEY));
+      if (stored && typeof stored.book === "string" && Number.isInteger(stored.chapter) && stored.chapter >= 1) {
+        return { book: stored.book, chapter: stored.chapter };
+      }
+    } catch (err) {
+      /* private browsing, or a value that is not JSON -- start at the beginning */
+    }
+    return null;
+  }
+
+  function saveReaderPosition(position) {
+    try {
+      localStorage.setItem(READER_POSITION_KEY, JSON.stringify({ book: position.book, chapter: position.chapter }));
+    } catch (err) {
+      /* the Read tab just opens at the beginning next visit */
+    }
+  }
+
+  function rashiWanted() {
+    try {
+      return localStorage.getItem(READER_RASHI_KEY) !== "0";
+    } catch (err) {
+      return true;
+    }
+  }
+
+  function saveRashiWanted(wanted) {
+    try {
+      localStorage.setItem(READER_RASHI_KEY, wanted ? "1" : "0");
+    } catch (err) {
+      /* the choice holds until the page is reloaded */
+    }
+  }
+
+  function readerHash(position) {
+    return "#/read/" + encodeURIComponent(position.book) + "/" + position.chapter +
+      (position.verse ? "/" + position.verse : "");
+  }
+
+  function readerPositionFromHash() {
+    var match = /^#\/read\/([^/]+)\/(\d+)(?:\/(\d+))?$/.exec(location.hash);
+    if (!match) return null;
+    try {
+      var position = { book: decodeURIComponent(match[1]), chapter: Number(match[2]) };
+      if (match[3]) position.verse = Number(match[3]);
+      return position;
+    } catch (err) {
+      return null; // a malformed %-escape
+    }
+  }
+
+  function readerBookInfo(he) {
+    if (!readerBooks) return null;
+    for (var i = 0; i < readerBooks.length; i++) {
+      if (readerBooks[i].he === he) return readerBooks[i];
+    }
+    return null;
+  }
+
+  // A link from a search result to its verse in the chapter.
+  function readerLink(verse) {
+    var position = { book: verse.book.he, chapter: verse.chapter, verse: verse.verse };
+    var link = el("a", "copy", t(locale, "reader.openInReader"));
+    link.href = readerHash(position);
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      openReader(position, true);
+    });
+    return link;
+  }
+
+  function showView(name) {
+    var reading = name === "read";
+    form.hidden = reading;
+    results.hidden = reading;
+    readerEl.hidden = !reading;
+    viewTabs.querySelectorAll(".view-tab").forEach(function (tab) {
+      var active = tab.dataset.view === name;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+
+  function populateReaderBooks() {
+    readerBookSelect.textContent = "";
+    readerBooks.forEach(function (book) {
+      var option = document.createElement("option");
+      option.value = book.he;
+      option.textContent = book[locale] || book.he;
+      readerBookSelect.appendChild(option);
+    });
+    syncReaderPickers();
+  }
+
+  function syncReaderPickers() {
+    if (!readerPosition) return;
+    var info = readerBookInfo(readerPosition.book);
+    readerBookSelect.value = readerPosition.book;
+    readerChapterSelect.textContent = "";
+    if (!info) return;
+    for (var chapter = 1; chapter <= info.chapters; chapter++) {
+      var option = document.createElement("option");
+      option.value = String(chapter);
+      option.textContent = locale === "he" ? info.chaptersHe[chapter - 1] : String(chapter);
+      readerChapterSelect.appendChild(option);
+    }
+    readerChapterSelect.value = String(readerPosition.chapter);
+  }
+
+  function syncReaderNav(data) {
+    readerEl.querySelectorAll(".reader-prev").forEach(function (button) {
+      button.disabled = !(data && data.previous);
+    });
+    readerEl.querySelectorAll(".reader-next").forEach(function (button) {
+      button.disabled = !(data && data.next);
+    });
+  }
+
+  function renderReaderChapter(data) {
+    readerPageEl.textContent = "";
+    readerPageEl.appendChild(hebrewSpan("h2", "reader-citation", data.ref));
+    var withRashi = readerRashiCheckbox.checked;
+    data.verses.forEach(function (verse) {
+      var row = el("div", "reader-verse");
+      row.dataset.verse = String(verse.verse);
+      row.appendChild(el("span", "reader-verse-num", locale === "he" ? verse.verseHe : String(verse.verse)));
+      var body = el("div", "reader-verse-body");
+      body.appendChild(hebrewSpan("p", "verse", verse.text));
+      var rashi = withRashi ? rashiDisclosure(verse) : null;
+      if (rashi) body.appendChild(rashi);
+      row.appendChild(body);
+      readerPageEl.appendChild(row);
+    });
+    // Redrawn for Rashi or a language switch: keep the mark, without scrolling again.
+    if (readerPosition && readerPosition.verse) markReaderTarget(readerPosition.verse);
+    syncReaderNav(data);
+  }
+
+  // Mark the verse a search result linked to, so it can be found.
+  function markReaderTarget(verse) {
+    var row = readerPageEl.querySelector('[data-verse="' + verse + '"]');
+    if (row) row.classList.add("reader-verse-target");
+    return row;
+  }
+
+  // Bring that verse into view.
+  function showReaderTarget(verse) {
+    var row = markReaderTarget(verse);
+    if (!row) return false;
+    row.scrollIntoView({ block: "center" });
+    return true;
+  }
+
+  function showReaderChapter(position, pushHash) {
+    var request = ++readerRequest;
+    readerPosition = position;
+    readerData = null;
+    syncReaderPickers();
+    syncReaderNav(null);
+    if (pushHash && location.hash !== readerHash(position)) {
+      history.pushState(null, "", readerHash(position));
+    }
+
+    readerPageEl.setAttribute("aria-busy", "true");
+    readerPageEl.textContent = "";
+    var skeleton = el("div", "skeleton");
+    for (var i = 0; i < 4; i++) skeleton.appendChild(el("div", "line"));
+    readerPageEl.appendChild(skeleton);
+    var disarm = armWaking();
+
+    var params = new URLSearchParams({ book: position.book, chapter: String(position.chapter) });
+    apiFetch("/api/chapter?" + params.toString())
+      .then(function (response) {
+        return response.json().then(function (body) {
+          if (!response.ok) {
+            var failure = new Error("chapter " + response.status);
+            failure.userMessage = body.code && t(locale, "error.code." + body.code);
+            throw failure;
+          }
+          return body;
+        }, function () {
+          throw new Error("chapter " + response.status); // an error body that is not JSON
+        });
+      })
+      .then(function (data) {
+        if (request !== readerRequest) return;
+        readerData = data;
+        readerGood = { book: position.book, chapter: position.chapter };
+        saveReaderPosition(position);
+        renderReaderChapter(data);
+        if (!(position.verse && showReaderTarget(position.verse))) readerEl.scrollIntoView({ block: "start" });
+      })
+      .catch(function (error) {
+        if (request !== readerRequest) return;
+        // The pickers go back to a chapter that exists, so the Read tab and the
+        // pickers can recover from a bad link.
+        readerPosition = readerGood || { book: readerBooks[0].he, chapter: 1 };
+        syncReaderPickers();
+        readerPageEl.textContent = "";
+        readerPageEl.appendChild(notice(t(locale, "error.title"), error.userMessage || t(locale, "reader.error"), "error"));
+      })
+      .then(function () {
+        if (request === readerRequest) readerPageEl.setAttribute("aria-busy", "false");
+        disarm();
+      });
+  }
+
+  function ensureReaderBooks() {
+    if (readerBooks) return Promise.resolve();
+    var disarm = armWaking();
+    return apiFetch("/api/books")
+      .then(function (response) {
+        if (!response.ok) throw new Error("books " + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        readerBooks = data.books;
+        disarm();
+      }, function (error) {
+        disarm();
+        throw error;
+      });
+  }
+
+  // `position` is where to open; without one, where the visitor left off, or the
+  // first chapter of the first book.
+  function openReader(position, pushHash) {
+    showView("read");
+    ensureReaderBooks()
+      .then(function () {
+        var start = position || readerPosition || loadReaderPosition() || { book: readerBooks[0].he, chapter: 1 };
+        readerPosition = start;
+        readerRashiCheckbox.checked = rashiWanted();
+        populateReaderBooks();
+        showReaderChapter(start, pushHash);
+      })
+      .catch(function () {
+        readerPageEl.textContent = "";
+        readerPageEl.appendChild(notice(t(locale, "error.title"), t(locale, "reader.error"), "error"));
+      });
+  }
+
+  function goToReaderChapter(ref) {
+    showReaderChapter({ book: ref.book, chapter: ref.chapter }, true);
+  }
+
+  viewTabs.addEventListener("click", function (event) {
+    var tab = event.target.closest(".view-tab");
+    if (!tab) return;
+    if (tab.dataset.view === "read") {
+      openReader(null, true);
+    } else if (!readerEl.hidden) {
+      showView("search");
+      history.pushState(null, "", searchHash || location.pathname + location.search);
+    }
+  });
+
+  readerBookSelect.addEventListener("change", function () {
+    showReaderChapter({ book: readerBookSelect.value, chapter: 1 }, true);
+  });
+
+  readerChapterSelect.addEventListener("change", function () {
+    showReaderChapter({ book: readerPosition.book, chapter: Number(readerChapterSelect.value) }, true);
+  });
+
+  readerEl.addEventListener("click", function (event) {
+    if (!readerData) return;
+    if (event.target.closest(".reader-prev") && readerData.previous) goToReaderChapter(readerData.previous);
+    if (event.target.closest(".reader-next") && readerData.next) goToReaderChapter(readerData.next);
+  });
+
+  readerRashiCheckbox.addEventListener("change", function () {
+    saveRashiWanted(readerRashiCheckbox.checked);
+    if (readerData) renderReaderChapter(readerData);
+  });
+
   // Applies a mode and query that came from the URL rather than from a click.
   function runFromHash(state) {
     mode = state.mode;
@@ -1085,6 +1398,12 @@
   }
 
   window.addEventListener("popstate", function () {
+    var position = readerPositionFromHash();
+    if (position) {
+      openReader(position, false);
+      return;
+    }
+    showView("search");
     var state = fromHash();
     if (state) runFromHash(state);
   });
@@ -1108,6 +1427,8 @@
     .catch(function () {})
     .then(disarmHealthWaking);
 
+  var initialPosition = readerPositionFromHash();
   var initial = fromHash();
-  if (initial) runFromHash(initial);
+  if (initialPosition) openReader(initialPosition, false);
+  else if (initial) runFromHash(initial);
 })();

@@ -99,6 +99,11 @@ class Corpus:
 
         self.verses: list[Verse] = []
         self.books: list[dict[str, Any]] = []
+        # (book_index, chapter) -> the half-open range of verse indexes it covers, and
+        # the chapters in reading order: what the reader needs to serve one chapter
+        # and to find the chapters on either side of it.
+        self.chapter_spans: dict[tuple[int, int], tuple[int, int]] = {}
+        self.chapter_order: list[tuple[int, int]] = []
 
         for book_index, book in enumerate(dataset["books"]):
             self.books.append(
@@ -107,6 +112,7 @@ class Corpus:
                     "en": book["en"],
                     "fr": book["fr"],
                     "section": book["sectionHe"],
+                    "chapters": len(book["chapters"]),
                 }
             )
             # "rashi" is missing from a dataset built before this field existed --
@@ -114,6 +120,7 @@ class Corpus:
             rashi_book = book.get("rashi")
             for chapter_number, chapter in enumerate(book["chapters"], start=1):
                 rashi_chapter = rashi_book[chapter_number - 1] if rashi_book else None
+                first_verse = len(self.verses)
                 for verse_number, text in enumerate(chapter, start=1):
                     rashi = rashi_chapter[verse_number - 1] if rashi_chapter else ""
                     self.verses.append(
@@ -130,6 +137,8 @@ class Corpus:
                             rashi=rashi,
                         )
                     )
+                self.chapter_spans[(book_index, chapter_number)] = (first_verse, len(self.verses))
+                self.chapter_order.append((book_index, chapter_number))
 
         # Index 1: verses grouped by their (first letter, last letter) pair.
         # This is the primary custom, so it must be an O(1) lookup.

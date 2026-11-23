@@ -5,6 +5,7 @@ of most of them is that the *actual* Tanakh gives the answer we expect.
 """
 
 import re
+from itertools import pairwise
 
 import pytest
 from fastapi.testclient import TestClient
@@ -34,6 +35,13 @@ class TestCorpus:
         assert corpus.verses[0].ref == "בראשית א׳:א׳"
         assert corpus.books[0]["he"] == "בראשית"
         assert corpus.books[-1]["he"] == "דברי הימים ב"
+
+    def test_chapter_spans_cover_every_verse_once_in_reading_order(self, corpus):
+        spans = [corpus.chapter_spans[key] for key in corpus.chapter_order]
+        assert len(spans) == 929
+        assert spans[0][0] == 0 and spans[-1][1] == len(corpus)
+        assert all(end > start for start, end in spans)
+        assert all(a[1] == b[0] for a, b in pairwise(spans))
 
     def test_every_verse_has_letters(self, corpus):
         assert all(verse.letters for verse in corpus.verses)
@@ -297,6 +305,32 @@ class TestApi:
         assert body["status"] == "ok"
         assert body["verses"] == 23206
         assert body["license"] == "Public Domain"
+
+    def test_chapter_serves_a_chapter(self, client):
+        body = client.get("/api/chapter", params={"book": "בראשית", "chapter": 1}).json()
+        assert body["ref"] == "בראשית א׳"
+        assert len(body["verses"]) == 31
+
+    @pytest.mark.parametrize(
+        ("params", "status", "code"),
+        [
+            ({"book": "nope", "chapter": 1}, 404, "unknown_book"),
+            ({"book": "בראשית", "chapter": 99}, 404, "chapter_not_found"),
+            ({"book": "בראשית", "chapter": 0}, 422, None),  # outside 1..999
+            ({"book": "בראשית", "chapter": 1000}, 422, None),
+            ({"book": "בראשית", "chapter": "x"}, 422, None),
+        ],
+    )
+    def test_chapter_reports_what_it_cannot_serve(self, client, params, status, code):
+        response = client.get("/api/chapter", params=params)
+        assert response.status_code == status
+        if code:
+            assert response.json()["code"] == code
+
+    def test_books_lists_the_books_with_hebrew_chapter_numerals(self, client):
+        books = client.get("/api/books").json()["books"]
+        assert len(books) == 39
+        assert books[0]["chaptersHe"][0] == "א׳"
 
     def test_single_name(self, client):
         body = client.get("/api/search", params={"names": "דוד"}).json()

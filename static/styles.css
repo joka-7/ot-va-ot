@@ -840,3 +840,90 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   .results-summary { position: sticky; top: 0; z-index: 5; }
   .group { scroll-margin-top: 3.2rem; }
 }
+
+/* --- View tabs (search / read), in the header --- */
+
+.view-tabs {
+  display: flex;
+  gap: .3rem;
+  margin-top: .9rem;
+  background: rgba(255, 255, 255, .14);
+  border-radius: 999px;
+  padding: .25rem;
+}
+.view-tab {
+  font: 600 .9rem var(--font);
+  color: #fff;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  padding: .4rem 1.4rem;
+  min-height: 36px;
+  opacity: .75;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.view-tab:hover { opacity: 1; }
+/* A fixed dark ink: --accent-text can turn light in dark mode, which the white pill can't carry. */
+.view-tab.active { background: #fff; color: #14503f; opacity: 1; }
+.view-tab:focus-visible { outline: 2.5px solid #fff; outline-offset: 2px; }
+
+/* --- Reader: one chapter read straight through --- */
+
+.select {
+  font: 500 .95rem var(--font);
+  color: var(--text);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: .65rem .75rem;
+  min-height: 44px;
+}
+.select:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+.reader:not([hidden]) { display: block; margin-top: 1.25rem; }
+/* minmax(0, 1fr), not auto: an auto column grows to the longest option inside a
+   <select>, which pushes the row past the screen in English and French. */
+.reader-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: .6rem; margin-bottom: .6rem; }
+.reader-row { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.reader-controls .select { min-width: 0; }
+.reader-book { flex: 1 1 0; }
+.reader-chapter { flex: 0 0 5.5rem; }
+.reader-nav { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; }
+.reader-nav .copy {
+  flex: 1 1 0;
+  justify-content: center;
+  min-height: 44px;
+  padding: .3rem .4rem;
+  font-size: .95rem;
+  line-height: 1.2;
+  white-space: normal; /* a longer label (French) wraps instead of overflowing */
+}
+.reader-nav .copy:disabled { opacity: .4; cursor: default; }
+.reader-rashi-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 .75rem;
+  font: 500 .95rem var(--font);
+  color: var(--text);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.reader-rashi-toggle input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); }
+.reader-page {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+.reader-citation { margin: 0 0 .75rem; font-size: 1.1rem; color: var(--accent-text); }
+.reader-verse { display: flex; gap: .6rem; align-items: baseline; padding: .15rem .3rem; border-radius: var(--radius-sm); }
+.reader-verse-num { flex: 0 0 1.9rem; font-size: .8rem; font-weight: 700; color: var(--accent-text); text-align: center; }
+.reader-verse-body { flex: 1 1 auto; min-width: 0; }
+.reader-verse .verse { cursor: auto; } /* only a search result's verse can be tapped to search a word */
+.reader-verse-target { background: var(--accent-soft); }

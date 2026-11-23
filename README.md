@@ -198,6 +198,8 @@ The UI is a client of this API; nothing is private to it.
 GET /api/search?names=אברהם,שרה&limit=100
 GET /api/phrase?q=בראשית ברא&ordered=true&limit=100
 GET /api/random?name=דוד
+GET /api/books                            -- the books, their chapter counts and Hebrew chapter numerals
+GET /api/chapter?book=בראשית&chapter=1    -- one chapter's verses, with Rashi, for reading
 GET /api/health
 ```
 
@@ -206,7 +208,8 @@ back as `{"error": "…", "code": "…"}` — `error` is a Hebrew message ready 
 display as-is; `code` (`empty` | `too_many` | `invalid_name` | `not_found`) is
 a stable string the frontend uses to show the same error in whichever of
 Hebrew/English/French the UI is currently in. `/api/phrase` adds its own codes:
-`empty_text` | `invalid_phrase` | `too_short` | `too_long`.
+`empty_text` | `invalid_phrase` | `too_short` | `too_long`. `/api/chapter` adds
+`unknown_book` | `chapter_not_found`.
 
 A text search answers with `exact` and `partial` groups of the same
 `{"total", "verses"}` shape, and a `query` echo:
@@ -262,6 +265,22 @@ A verse:
   "rashi": "<b>אלה.</b> האמורים למעלה: …"   // "" when Rashi wrote nothing on this verse
 }
 ```
+
+## Reading a chapter
+
+The **Read** tab (next to Search, in the header) opens a chapter to read straight
+through: pick a book and a chapter, or step with the previous/next chapter
+buttons, which run on across books (the last chapter of Genesis leads to Exodus 1)
+and stop only at the start and end of the Tanakh. The text is the same niqqud and
+cantillation as in search results. Each verse Rashi wrote on has a "פירוש רש״י"
+button that opens his comment, and the "רש״י" checkbox shows or hides those
+buttons. The chapter is in the URL hash (`#/read/<book>/<chapter>`, plus
+`/<verse>` to land on a verse), so it can be linked to and the back button steps
+between chapters; the last chapter read is kept in `localStorage`, and the Read
+tab reopens it. Every search result has an "Open in reader" link that opens its
+chapter at that verse. The text comes from `GET /api/chapter` (`app/reader.py`);
+the book and chapter pickers are filled from `GET /api/books`, which also carries
+each chapter's Hebrew numeral so the browser does not carry its own gematria.
 
 ## Language
 
