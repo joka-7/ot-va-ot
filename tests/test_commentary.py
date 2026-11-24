@@ -12,7 +12,9 @@ from app.commentary import (
 )
 from app.main import app
 
-ONKELOS, IBN_EZRA, METZUDAT_DAVID = KNOWN_COMMENTARIES
+BY_ID = {info.id: info for info in KNOWN_COMMENTARIES}
+ONKELOS = BY_ID["onkelos"]
+ALL_IDS = [info.id for info in KNOWN_COMMENTARIES]
 GENESIS = "בראשית"
 
 
@@ -39,7 +41,7 @@ class TestCommentaryStores:
     @pytest.mark.parametrize(
         ("environ", "ids"),
         [
-            ({}, ["onkelos", "ibn-ezra", "metzudat-david"]),  # unset: all of them
+            ({}, ALL_IDS),  # unset: all of them
             ({"ENABLED_COMMENTARIES": ""}, []),  # set but empty: none
             ({"ENABLED_COMMENTARIES": " onkelos ,"}, ["onkelos"]),
             ({"ENABLED_COMMENTARIES": "ibn-ezra,onkelos"}, ["ibn-ezra", "onkelos"]),
@@ -91,7 +93,7 @@ class TestCommentaryStores:
 class TestCommentaryEndpoint:
     def test_books_lists_the_enabled_commentaries(self, client):
         listed = client.get("/api/books").json()["commentaries"]
-        assert [c["id"] for c in listed] == ["onkelos", "ibn-ezra", "metzudat-david"]
+        assert [c["id"] for c in listed] == ALL_IDS
         assert listed[0] == ONKELOS.as_dict()
 
     def test_gives_a_chapters_verses_with_the_licence(self, client):

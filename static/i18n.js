@@ -20,11 +20,11 @@ var I18N = (function () {
 
   var STRINGS = {
     he: {
-      "meta.description": "חיפוש ולימוד בתנ״ך: פסוק לפי האות הראשונה והאחרונה של השם, חיפוש טקסט, וקריאת הפרק עם רש״י.",
+      "meta.description": "חיפוש ולימוד בתנ״ך: פסוק לפי האות הראשונה והאחרונה של השם, חיפוש טקסט, ולימוד הפרק עם מפרשים.",
       "doc.title": "אות ואות — חיפוש ולימוד בתנ״ך",
 
       "header.title": "אות ואות",
-      "header.subtitle": "חיפוש ולימוד בתנ״ך — פסוק לפי שם, חיפוש טקסט וקריאה עם רש״י",
+      "header.subtitle": "חיפוש פסוק לפי שם, חיפוש טקסט ולימוד עם מפרשים",
 
       "settings.button": "הגדרות",
       "settings.heading": "הגדרות",
@@ -160,11 +160,11 @@ var I18N = (function () {
     },
 
     en: {
-      "meta.description": "Search and study the Tanakh: find a verse by a name's first and last letter, search any text, and read a chapter with Rashi.",
+      "meta.description": "Search and study the Tanakh: find a verse by a name's first and last letter, search any text, and read a chapter with commentaries.",
       "doc.title": "Ot va-Ot — Search & Study the Tanakh",
 
       "header.title": "Ot va-Ot",
-      "header.subtitle": "Search and study the Tanakh — a verse for a name, text search, and reading with Rashi",
+      "header.subtitle": "Find a verse for a name, search text, and study with commentaries",
 
       "settings.button": "Settings",
       "settings.heading": "Settings",
@@ -300,11 +300,11 @@ var I18N = (function () {
     },
 
     fr: {
-      "meta.description": "Rechercher et étudier le Tanakh : un verset selon la première et la dernière lettre d'un prénom, recherche de texte et lecture d'un chapitre avec Rachi.",
+      "meta.description": "Rechercher et étudier le Tanakh : un verset selon la première et la dernière lettre d'un prénom, recherche de texte et étude d'un chapitre avec les commentaires.",
       "doc.title": "Ot va-Ot — Recherche et étude du Tanakh",
 
       "header.title": "Ot va-Ot",
-      "header.subtitle": "Rechercher et étudier le Tanakh — un verset pour un prénom, recherche de texte et lecture avec Rachi",
+      "header.subtitle": "Trouver un verset pour un prénom, rechercher un texte et étudier avec les commentaires",
 
       "settings.button": "Paramètres",
       "settings.heading": "Paramètres",

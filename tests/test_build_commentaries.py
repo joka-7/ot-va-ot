@@ -104,3 +104,15 @@ class TestWriteArchive:
             "books": [{"en": "Genesis", "he": "בראשית", "license": "CC-BY-NC"}],
         }
         assert member["chapters"] == [["א"]]
+
+
+class TestSpecs:
+    def test_every_spec_has_a_commentary_the_app_serves_and_an_archive_under_its_licenses(self):
+        from app.commentary import KNOWN_COMMENTARIES
+
+        assert set(build.SPECS) == {info.id for info in KNOWN_COMMENTARIES}
+        for info in KNOWN_COMMENTARIES:
+            with zipfile.ZipFile(info.data_path) as archive:
+                header = json.loads(archive.read("header.json"))
+            licenses = {book["license"] for book in header["books"]}
+            assert licenses <= build.SPECS[info.id].allowed_licenses, info.id

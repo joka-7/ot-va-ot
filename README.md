@@ -353,35 +353,34 @@ the reader taps it open. Absent entirely on a verse Rashi didn't comment on.
 ### More commentaries in the reader
 
 The Read tab's **"פירושים"** dropdown ticks which commentaries to show under each
-verse: Rashi (on by default) and, when enabled, **Targum Onkelos**, **Ibn Ezra**
-and **Metzudat David**. Unlike Rashi they are not part of `data/tanakh.json.gz`.
-Each is a zip, `data/<id>.zip` (0.2 MB, 0.6 MB and 1.2 MB), with a member per book;
-`app/commentary.py` reads a book when a chapter of it is first asked for and keeps
-the last four, and the page fetches the ticked ones from `GET /api/commentary`.
-`ENABLED_COMMENTARIES` chooses which are served: unset means all three, a list
-(`onkelos,ibn-ezra`) serves only those, and an empty value serves none. The app held about 131 MB at startup before this.
+verse: Rashi (on by default) and ten more, all served by `app/commentary.py`:
+Targum Onkelos, Targum Jonathan, Rashbam, Ibn Ezra, Ralbag, Sforno, Da'at Zekenim,
+Metzudat David, Or HaChaim, Kli Yakar and Malbim. Unlike Rashi they are not part of
+`data/tanakh.json.gz`. Each is a zip, `data/<id>.zip` (0.15 to 2.6 MB), with a member
+per book; the server reads a book when a chapter of it is first asked for and keeps
+the last four of each, and the page fetches the ticked ones from `GET /api/commentary`.
+`ENABLED_COMMENTARIES` chooses which are served: unset means all of them, a list
+(`onkelos,ibn-ezra`) serves only those, and an empty value serves none. With every
+book of every one read, the process peaked at about 162 MB (131 MB at start).
 
-Coverage is what Sefaria has under an allowed license, taken as it is:
-- **Onkelos**: the five books of the Torah. The only version is Metsudah's,
-  CC-BY-NC, which the page credits.
-- **Metzudat David**: 31 books (the Prophets and most of the Writings; not Ruth,
-  Esther or Lamentations). Public Domain.
-- **Ibn Ezra**: 22 books, Public Domain: Exodus to Deuteronomy, eleven of the
-  Twelve Prophets, Proverbs, Job, Ruth, Esther, Daniel, Ezra and Nehemiah. Sefaria
-  has Ibn Ezra on 29 books, and seven are left out (Genesis, Isaiah, Psalms, Song
-  of Songs, Lamentations, Ecclesiastes, Habakkuk) because its versions are
-  unlicensed, restricted or not verse by verse. It has none on Joshua to Kings,
-  Jeremiah, Ezekiel or Chronicles. The short commentary on Exodus is not used.
-
-Radak was left out: Sefaria's text of it is licensed "unknown" for 22 of its 25 books.
+Coverage is what Sefaria has under an allowed license (Public Domain or CC0; Onkelos'
+only version is CC-BY-NC and is credited on the page), taken as it is, so it varies:
+Targum Onkelos 5 books (the Torah), Targum Jonathan 26 (the Prophets and Torah),
+Metzudat David 31, Malbim 29, Ibn Ezra 22, Ralbag 11, Rashbam 5 (Torah), Da'at Zekenim
+5 (Torah), Sforno 4, Or HaChaim 4, Kli Yakar 4. A book a commentary does not cover shows
+"not available for this chapter". Left out because Sefaria's Hebrew text of them is
+licensed "unknown", restricted, or not per book: Radak, Ramban, Abarbanel, Haamek
+Davar, Ba'al HaTurim, Chizkuni, Rabbeinu Bahya and the Steinsaltz Tanakh (no Hebrew
+text in the export at all).
 
 Each is lined up with the verses by position, as Rashi is (`align()` in
 `scripts/build_commentaries.py`), and a chapter with more comments than verses is
-skipped rather than risk the wrong verse (one chapter each of Metzudat David's
-Jeremiah and Ibn Ezra's Ezra). That alignment was checked by the build's own
-counts, not against the meaning of the text. Rebuild one with
-`python -m scripts.build_commentaries --commentary onkelos` (or `ibn-ezra`,
-`metzudat-david`).
+skipped rather than risk the wrong verse (Malbim on Judges loses nine chapters this
+way). As a check made when this was built, not kept as a test: of each commentary's
+comments, the opening two words are found in the comment's own verse for 40 to 89% of
+them (the Targumim, being translations, 2 to 4%), and in only a neighbouring verse for
+at most 0.3%, which a one-verse shift would raise sharply. Rebuild one with
+`python -m scripts.build_commentaries --commentary onkelos` (or any other id).
 
 ## Tests
 

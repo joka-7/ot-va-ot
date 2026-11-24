@@ -22,10 +22,18 @@ ot-va-ot/
 │   ├── reader.py                   # Reading one chapter of the Tanakh: its verses, and the chapters on either…
 │   └── search.py                   # Verse matching.
 ├── data/
+│   ├── daat-zekenim.zip
 │   ├── ibn-ezra.zip
+│   ├── kli-yakar.zip
+│   ├── malbim.zip
 │   ├── metzudat-david.zip
 │   ├── onkelos.zip
-│   └── tanakh.json.gz
+│   ├── or-hachaim.zip
+│   ├── ralbag.zip
+│   ├── rashbam.zip
+│   ├── sforno.zip
+│   ├── tanakh.json.gz
+│   └── targum-jonathan.zip
 ├── docs/
 │   ├── HLD.md                      # High-level design — אות ואות
 │   ├── LLD.md                      # Low-level design — אות ואות
@@ -48,7 +56,6 @@ ot-va-ot/
 │   ├── styles.css
 │   └── sw.js
 ├── tests/
-│   ├── conftest.py                 # Enable the display-only commentaries for every test, as render.yaml does.
 │   ├── test_build_commentaries.py  # Tests for scripts/build_commentaries.py, on synthetic data (no network).
 │   ├── test_build_dataset.py       # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
 │   ├── test_commentary.py          # Tests for app/commentary.py and /api/commentary, on the real archives.

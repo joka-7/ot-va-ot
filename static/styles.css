@@ -923,6 +923,8 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   .reader-commentaries summary { justify-content: center; }
 }
 .reader-commentaries-panel {
+  max-height: 60vh;
+  overflow-y: auto; /* there are a dozen commentaries to list */
   position: absolute;
   z-index: 5;
   top: calc(100% + .35rem);
