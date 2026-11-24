@@ -158,13 +158,17 @@ class CommentaryStores:
     def from_environ(cls, environ: Mapping[str, str]) -> CommentaryStores:
         """Build the registry from ``ENABLED_COMMENTARIES`` (comma-separated ids).
 
-        Unset or empty means none.
+        Unset means every known commentary: their data ships in the repository and
+        costs little memory, so a host that never sets the variable still serves them.
+        Set but empty means none.
 
         Raises:
             CommentaryConfigError: If a listed id is not a known commentary.
         """
         known = {info.id: info for info in KNOWN_COMMENTARIES}
-        ids = [part.strip() for part in environ.get("ENABLED_COMMENTARIES", "").split(",")]
+        if "ENABLED_COMMENTARIES" not in environ:
+            return cls(list(KNOWN_COMMENTARIES))
+        ids = [part.strip() for part in environ["ENABLED_COMMENTARIES"].split(",")]
         ids = [commentary_id for commentary_id in ids if commentary_id]
         unknown = [commentary_id for commentary_id in ids if commentary_id not in known]
         if unknown:

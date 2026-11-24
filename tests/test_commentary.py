@@ -39,8 +39,8 @@ class TestCommentaryStores:
     @pytest.mark.parametrize(
         ("environ", "ids"),
         [
-            ({}, []),
-            ({"ENABLED_COMMENTARIES": ""}, []),
+            ({}, ["onkelos", "ibn-ezra", "metzudat-david"]),  # unset: all of them
+            ({"ENABLED_COMMENTARIES": ""}, []),  # set but empty: none
             ({"ENABLED_COMMENTARIES": " onkelos ,"}, ["onkelos"]),
             ({"ENABLED_COMMENTARIES": "ibn-ezra,onkelos"}, ["ibn-ezra", "onkelos"]),
         ],
