@@ -358,8 +358,8 @@ and **Metzudat David**. Unlike Rashi they are not part of `data/tanakh.json.gz`.
 Each is a zip, `data/<id>.zip` (0.2 MB, 0.6 MB and 1.2 MB), with a member per book;
 `app/commentary.py` reads a book when a chapter of it is first asked for and keeps
 the last four, and the page fetches the ticked ones from `GET /api/commentary`.
-`ENABLED_COMMENTARIES=onkelos,ibn-ezra,metzudat-david` turns them on (unset means
-none; `render.yaml` sets it). The app held about 131 MB at startup before this.
+`ENABLED_COMMENTARIES` chooses which are served: unset means all three, a list
+(`onkelos,ibn-ezra`) serves only those, and an empty value serves none. The app held about 131 MB at startup before this.
 
 Coverage is what Sefaria has under an allowed license, taken as it is:
 - **Onkelos**: the five books of the Torah. The only version is Metsudah's,
