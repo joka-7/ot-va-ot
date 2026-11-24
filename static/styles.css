@@ -888,7 +888,7 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .reader-controls .select { min-width: 0; }
 .reader-book { flex: 1 1 0; }
 .reader-chapter { flex: 0 0 5.5rem; }
-.reader-nav { display: flex; align-items: center; gap: .5rem; margin: .75rem 0; }
+.reader-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .75rem 0; }
 .reader-nav .copy {
   flex: 1 1 0;
   justify-content: center;
@@ -899,21 +899,55 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   white-space: normal; /* a longer label (French) wraps instead of overflowing */
 }
 .reader-nav .copy:disabled { opacity: .4; cursor: default; }
-.reader-rashi-toggle {
-  display: inline-flex;
+.reader-commentaries { position: relative; flex: 0 0 auto; }
+.reader-commentaries summary {
+  display: flex;
   align-items: center;
-  gap: .45rem;
-  flex: 0 0 auto;
   min-height: 44px;
   padding: 0 .75rem;
   font: 500 .95rem var(--font);
   color: var(--text);
   background: var(--surface);
-  border: 1.5px solid var(--line);
+  border: 1.5px solid var(--accent);
   border-radius: var(--radius-sm);
   cursor: pointer;
+  list-style: none;
 }
-.reader-rashi-toggle input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); }
+.reader-commentaries summary::-webkit-details-marker { display: none; }
+.reader-commentaries summary::after { content: "\25BE"; margin-inline-start: .4rem; font-size: .8em; }
+.reader-commentaries[open] summary { border-color: var(--accent); }
+/* On a very narrow screen the dropdown takes a line of its own under the two buttons,
+   so a longer label (French) does not push the row past the margin. */
+@media (max-width: 340px) {
+  .reader-commentaries { order: 3; flex: 1 0 100%; }
+  .reader-commentaries summary { justify-content: center; }
+}
+.reader-commentaries-panel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + .35rem);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  min-width: 11rem;
+  padding: .35rem;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+:root[dir="rtl"] .reader-commentaries-panel { transform: translateX(50%); }
+.reader-commentary-option {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 44px;
+  padding: 0 .5rem;
+  font: 500 .95rem var(--font);
+  color: var(--text);
+  cursor: pointer;
+}
+.reader-commentary-option input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); }
+.reader-commentary-option:has(input:disabled) { opacity: .5; cursor: default; }
 .reader-page {
   background: var(--surface);
   border: 1px solid var(--line);

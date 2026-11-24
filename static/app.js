@@ -353,6 +353,7 @@
 
     var details = document.createElement("details");
     details.className = "rashi";
+    details.dataset.order = "0";
     var summary = document.createElement("summary");
     summary.textContent = t(locale, "rashi.toggle");
     details.appendChild(summary);
@@ -691,6 +692,7 @@
     if (mode !== "text") setNiqqudPadOpen(false);
 
     if (readerBooks) populateReaderBooks();
+    syncReaderCommentaries();
     if (readerData) renderReaderChapter(readerData);
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
@@ -1094,13 +1096,16 @@
   // reopens it.
 
   var READER_POSITION_KEY = "pasuk-leshem:reader-position";
+  var READER_COMMENTARIES_KEY = "pasuk-leshem:reader-commentaries";
+  // Before there were several commentaries this was one on/off switch for Rashi.
   var READER_RASHI_KEY = "pasuk-leshem:reader-rashi";
 
   var viewTabs = document.getElementById("view-tabs");
   var readerEl = document.getElementById("reader");
   var readerBookSelect = document.getElementById("reader-book");
   var readerChapterSelect = document.getElementById("reader-chapter");
-  var readerRashiCheckbox = document.getElementById("reader-rashi");
+  var readerCommentariesEl = document.getElementById("reader-commentaries");
+  var readerCommentariesPanel = document.getElementById("reader-commentaries-panel");
   var readerPageEl = document.getElementById("reader-page");
 
   // GET /api/books, loaded the first time the reader opens.
@@ -1109,6 +1114,9 @@
   var readerGood = null; // the last position that loaded, to fall back to when one does not
   var readerData = null; // the last /api/chapter response, kept to redraw on a language switch
   var readerRequest = 0; // a slower, older response never replaces a newer one
+  var readerRender = 0; // likewise for a commentary that answers after the page was redrawn
+  var readerCommentaries = []; // GET /api/books's commentaries, besides Rashi
+  var readerCommentaryCache = {};
 
   function loadReaderPosition() {
     try {
@@ -1130,20 +1138,105 @@
     }
   }
 
-  function rashiWanted() {
+  // Which commentaries the visitor ticked, by id. The old single Rashi switch is read
+  // once if the new choice has not been saved yet.
+  function loadReaderCommentaryChoice() {
     try {
-      return localStorage.getItem(READER_RASHI_KEY) !== "0";
+      var stored = JSON.parse(localStorage.getItem(READER_COMMENTARIES_KEY));
+      if (Array.isArray(stored)) {
+        return stored.filter(function (id) { return typeof id === "string"; });
+      }
+      return localStorage.getItem(READER_RASHI_KEY) === "0" ? [] : ["rashi"];
     } catch (err) {
-      return true;
+      return ["rashi"];
     }
   }
 
-  function saveRashiWanted(wanted) {
+  function saveReaderCommentaryChoice(ids) {
     try {
-      localStorage.setItem(READER_RASHI_KEY, wanted ? "1" : "0");
+      localStorage.setItem(READER_COMMENTARIES_KEY, JSON.stringify(ids));
     } catch (err) {
       /* the choice holds until the page is reloaded */
     }
+  }
+
+  var readerCommentaryChoice = loadReaderCommentaryChoice();
+
+  // Rashi comes with the chapter; the others are fetched, and listed by /api/books.
+  function readerCommentaryList() {
+    return [{ id: "rashi", he: "רש״י", en: "Rashi", fr: "Rachi" }].concat(readerCommentaries);
+  }
+
+  function commentaryName(commentary) {
+    return commentary[locale] || commentary.he;
+  }
+
+  function syncReaderCommentaries() {
+    readerCommentariesPanel.textContent = "";
+    readerCommentaryList().forEach(function (commentary) {
+      var option = el("label", "reader-commentary-option");
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      box.value = commentary.id;
+      box.checked = readerCommentaryChoice.indexOf(commentary.id) !== -1;
+      option.appendChild(box);
+      option.appendChild(el("span", null, commentaryName(commentary)));
+      readerCommentariesPanel.appendChild(option);
+    });
+  }
+
+  // One commentary's text on the chapter being read, from the cache or the network.
+  function loadReaderCommentary(id, data) {
+    var key = id + "|" + data.book.he + "|" + data.chapter;
+    if (readerCommentaryCache[key]) return Promise.resolve(readerCommentaryCache[key]);
+    var params = new URLSearchParams({ book: data.book.he, chapter: String(data.chapter), commentary: id });
+    return apiFetch("/api/commentary?" + params.toString()).then(function (response) {
+      if (!response.ok) throw new Error("commentary " + response.status);
+      return response.json();
+    }).then(function (loaded) {
+      readerCommentaryCache[key] = loaded;
+      return loaded;
+    });
+  }
+
+  // A commentary's note under a verse, among that verse's other notes in the order the
+  // commentaries are listed, whichever answered first. Its text is limited at build time
+  // to <b>/<small>/<br> (scripts/build_dataset.py's clean_rashi_comment), as Rashi's is.
+  function insertCommentaryNote(body, commentary, text, order) {
+    var details = el("details", "rashi");
+    details.dataset.order = String(order);
+    details.appendChild(el("summary", null, commentaryName(commentary)));
+    var content = hebrewSpan("div", "rashi-text", null);
+    content.innerHTML = text;
+    details.appendChild(content);
+    var later = null;
+    body.querySelectorAll("details").forEach(function (note) {
+      if (!later && Number(note.dataset.order) > order) later = note;
+    });
+    body.insertBefore(details, later);
+  }
+
+  // The ticked commentaries other than Rashi, fetched one by one for the page just drawn.
+  function showReaderCommentaries(data, bodies) {
+    var render = ++readerRender;
+    readerCommentaryList().forEach(function (commentary, order) {
+      if (commentary.id === "rashi" || readerCommentaryChoice.indexOf(commentary.id) === -1) return;
+      var name = commentaryName(commentary);
+      var status = el("p", "attribution", t(locale, "reader.commentaryLoading", { name: name }));
+      readerPageEl.appendChild(status);
+      loadReaderCommentary(commentary.id, data).then(function (loaded) {
+        if (render !== readerRender) return;
+        loaded.verses.forEach(function (verse) {
+          if (bodies[verse.verse]) insertCommentaryNote(bodies[verse.verse], commentary, verse.text, order);
+        });
+        status.textContent = !loaded.verses.length
+          ? t(locale, "reader.commentaryNone", { name: name })
+          : loaded.license ? t(locale, "reader.commentaryCredit", { name: name, license: loaded.license }) : "";
+        status.hidden = !status.textContent;
+      }).catch(function () {
+        if (render === readerRender) status.textContent = t(locale, "reader.commentaryError", { name: name });
+      });
+    });
   }
 
   function readerHash(position) {
@@ -1233,7 +1326,8 @@
   function renderReaderChapter(data) {
     readerPageEl.textContent = "";
     readerPageEl.appendChild(hebrewSpan("h2", "reader-citation", data.ref));
-    var withRashi = readerRashiCheckbox.checked;
+    var withRashi = readerCommentaryChoice.indexOf("rashi") !== -1;
+    var bodies = {};
     data.verses.forEach(function (verse) {
       var row = el("div", "reader-verse");
       row.dataset.verse = String(verse.verse);
@@ -1242,9 +1336,11 @@
       body.appendChild(hebrewSpan("p", "verse", verse.text));
       var rashi = withRashi ? rashiDisclosure(verse) : null;
       if (rashi) body.appendChild(rashi);
+      bodies[verse.verse] = body;
       row.appendChild(body);
       readerPageEl.appendChild(row);
     });
+    showReaderCommentaries(data, bodies);
     // Redrawn for Rashi or a language switch: keep the mark, without scrolling again.
     if (readerPosition && readerPosition.verse) markReaderTarget(readerPosition.verse);
     syncReaderNav(data);
@@ -1329,6 +1425,7 @@
       })
       .then(function (data) {
         readerBooks = data.books;
+        readerCommentaries = Array.isArray(data.commentaries) ? data.commentaries : [];
         disarm();
       }, function (error) {
         disarm();
@@ -1344,7 +1441,7 @@
       .then(function () {
         var start = position || readerPosition || loadReaderPosition() || { book: readerBooks[0].he, chapter: 1 };
         readerPosition = start;
-        readerRashiCheckbox.checked = rashiWanted();
+        syncReaderCommentaries();
         populateReaderBooks();
         showReaderChapter(start, pushHash);
       })
@@ -1383,9 +1480,27 @@
     if (event.target.closest(".reader-next") && readerData.next) goToReaderChapter(readerData.next);
   });
 
-  readerRashiCheckbox.addEventListener("change", function () {
-    saveRashiWanted(readerRashiCheckbox.checked);
+  readerCommentariesPanel.addEventListener("change", function (event) {
+    var id = event.target.value;
+    readerCommentaryChoice = readerCommentaryChoice.filter(function (chosen) { return chosen !== id; });
+    if (event.target.checked) readerCommentaryChoice.push(id);
+    saveReaderCommentaryChoice(readerCommentaryChoice);
     if (readerData) renderReaderChapter(readerData);
+  });
+
+  // The dropdown closes when the visitor taps anywhere else, presses Escape, or tabs out of it.
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest("#reader-commentaries")) readerCommentariesEl.open = false;
+  });
+  readerCommentariesEl.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    readerCommentariesEl.open = false;
+    readerCommentariesEl.querySelector("summary").focus();
+  });
+  readerCommentariesEl.addEventListener("focusout", function (event) {
+    if (event.relatedTarget && !readerCommentariesEl.contains(event.relatedTarget)) {
+      readerCommentariesEl.open = false;
+    }
   });
 
   // Applies a mode and query that came from the URL rather than from a click.

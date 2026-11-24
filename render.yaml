@@ -17,3 +17,7 @@ services:
       # the frontend moves to a domain that default doesn't cover.
       - key: ALLOWED_ORIGINS
         sync: false
+      # Commentaries shown in the reader besides Rashi (app/commentary.py). Each is read a
+      # book at a time from data/<id>.zip, so they add little memory (about 131MB at start).
+      - key: ENABLED_COMMENTARIES
+        value: onkelos,ibn-ezra,metzudat-david
