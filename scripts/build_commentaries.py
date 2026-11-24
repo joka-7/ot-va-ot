@@ -70,6 +70,54 @@ SPECS: dict[str, CommentarySpec] = {
             "Metzudat David on ",
             frozenset({"Public Domain", "CC0"}),
         ),
+        CommentarySpec(
+            "targum-jonathan",
+            ("Tanakh", "Targum", "Targum Jonathan"),
+            "Targum Jonathan on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "ralbag",
+            ("Tanakh", "Rishonim on Tanakh", "Ralbag"),
+            "Ralbag on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "sforno",
+            ("Tanakh", "Rishonim on Tanakh", "Sforno"),
+            "Sforno on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "rashbam",
+            ("Tanakh", "Rishonim on Tanakh", "Rashbam"),
+            "Rashbam on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "or-hachaim",
+            ("Tanakh", "Acharonim on Tanakh", "Or HaChaim"),
+            "Or HaChaim on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "kli-yakar",
+            ("Tanakh", "Acharonim on Tanakh", "Kli Yakar"),
+            "Kli Yakar on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "malbim",
+            ("Tanakh", "Acharonim on Tanakh", "Malbim"),
+            "Malbim on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
+        CommentarySpec(
+            "daat-zekenim",
+            ("Tanakh", "Rishonim on Tanakh", "Da'at Zekenim"),
+            "Da'at Zekenim on ",
+            frozenset({"Public Domain", "CC0"}),
+        ),
     )
 }
 

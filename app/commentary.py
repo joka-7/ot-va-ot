@@ -53,12 +53,23 @@ class Commentary:
         return {"id": self.id, "he": self.he, "en": self.en, "fr": self.fr}
 
 
+def _commentary(id: str, he: str, en: str, fr: str | None = None) -> Commentary:
+    return Commentary(id, he, en, fr or en, f"{id}.zip")
+
+
+# In the order the reader lists them: the translations, then the Rishonim, then the Acharonim.
 KNOWN_COMMENTARIES: tuple[Commentary, ...] = (
-    Commentary("onkelos", "תרגום אונקלוס", "Targum Onkelos", "Targum Onkelos", "onkelos.zip"),
-    Commentary("ibn-ezra", "אבן עזרא", "Ibn Ezra", "Ibn Ezra", "ibn-ezra.zip"),
-    Commentary(
-        "metzudat-david", "מצודת דוד", "Metzudat David", "Metzudat David", "metzudat-david.zip"
-    ),
+    _commentary("onkelos", "תרגום אונקלוס", "Targum Onkelos"),
+    _commentary("targum-jonathan", "תרגום יונתן", "Targum Jonathan"),
+    _commentary("rashbam", "רשב״ם", "Rashbam"),
+    _commentary("ibn-ezra", "אבן עזרא", "Ibn Ezra"),
+    _commentary("ralbag", "רלב״ג", "Ralbag"),
+    _commentary("sforno", "ספורנו", "Sforno"),
+    _commentary("daat-zekenim", "דעת זקנים", "Da'at Zekenim"),
+    _commentary("metzudat-david", "מצודת דוד", "Metzudat David"),
+    _commentary("or-hachaim", "אור החיים", "Or HaChaim"),
+    _commentary("kli-yakar", "כלי יקר", "Kli Yakar"),
+    _commentary("malbim", "מלבי״ם", "Malbim"),
 )
 
 
