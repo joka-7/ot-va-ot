@@ -22,10 +22,18 @@ ot-va-ot/
 │   ├── reader.py                   # Reading one chapter of the Tanakh: its verses, and the chapters on either…
 │   └── search.py                   # Verse matching.
 ├── data/
+│   ├── daat-zekenim.zip
 │   ├── ibn-ezra.zip
+│   ├── kli-yakar.zip
+│   ├── malbim.zip
 │   ├── metzudat-david.zip
 │   ├── onkelos.zip
-│   └── tanakh.json.gz
+│   ├── or-hachaim.zip
+│   ├── ralbag.zip
+│   ├── rashbam.zip
+│   ├── sforno.zip
+│   ├── tanakh.json.gz
+│   └── targum-jonathan.zip
 ├── docs/
 │   ├── HLD.md                      # High-level design — אות ואות
 │   ├── LLD.md                      # Low-level design — אות ואות
