@@ -24,7 +24,7 @@ var I18N = (function () {
       "doc.title": "אות ואות — חיפוש ולימוד בתנ״ך",
 
       "header.title": "אות ואות",
-      "header.subtitle": "חיפוש פסוק לפי שם, חיפוש טקסט ולימוד עם מפרשים",
+      "header.subtitle": "חיפוש ולימוד בתנ״ך\nחיפוש טקסט או פסוק לשם ולימוד עם מפרשים",
 
       "settings.button": "הגדרות",
       "settings.heading": "הגדרות",
@@ -164,7 +164,7 @@ var I18N = (function () {
       "doc.title": "Ot va-Ot — Search & Study the Tanakh",
 
       "header.title": "Ot va-Ot",
-      "header.subtitle": "Find a verse for a name, search text, and study with commentaries",
+      "header.subtitle": "Search and study the Tanakh\nVerse by name, text search, commentaries",
 
       "settings.button": "Settings",
       "settings.heading": "Settings",
@@ -304,7 +304,7 @@ var I18N = (function () {
       "doc.title": "Ot va-Ot — Recherche et étude du Tanakh",
 
       "header.title": "Ot va-Ot",
-      "header.subtitle": "Trouver un verset pour un prénom, rechercher un texte et étudier avec les commentaires",
+      "header.subtitle": "Rechercher et étudier le Tanakh\nVerset par prénom, texte, commentaires",
 
       "settings.button": "Paramètres",
       "settings.heading": "Paramètres",
