@@ -182,7 +182,14 @@ def clean_verse(text: str) -> str:
 # innerHTML in the browser rather than plain text, so only that fixed,
 # hand-verified tag set is ever allowed through.
 RASHI_ROOT = "https://storage.googleapis.com/sefaria-export/json/Tanakh/Rishonim on Tanakh/Rashi"
-RASHI_TAG = re.compile(r"<(?!/?(?:b|small|br)\b)[^>]*>", re.IGNORECASE)
+RASHI_TAG = re.compile(r"<(/?)(\w+)[^>]*>")
+RASHI_KEPT_TAGS = frozenset({"b", "small", "br"})
+
+
+def _keep_bare_tag(tag: re.Match[str]) -> str:
+    """A kept tag with its attributes removed, or nothing for any other tag."""
+    name = tag.group(2).lower()
+    return f"<{tag.group(1)}{name}>" if name in RASHI_KEPT_TAGS else ""
 
 
 def rashi_url(section: str, book: str) -> str:
@@ -194,7 +201,7 @@ def rashi_url(section: str, book: str) -> str:
 def clean_rashi_comment(text: str) -> str:
     """Reduce one raw Rashi comment to the safe HTML fragment the UI can show."""
     text = ZERO_WIDTH.sub("", text)
-    text = RASHI_TAG.sub("", text)
+    text = RASHI_TAG.sub(_keep_bare_tag, text)
     return WHITESPACE.sub(" ", text).strip()
 
 

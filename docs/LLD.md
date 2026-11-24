@@ -226,8 +226,9 @@ rather than a stricter per-request check.
 | `GET /api/search` | `names` (required), `limit` (1..500) | `query`, `names[]`, and `pairs` when ≥2 names |
 | `GET /api/phrase` | `q` (required), `ordered` (default `true`), `limit` (1..500) | `query`, `exact`, `partial` |
 | `GET /api/random` | `name` (required) | `{"name", "verse"}` — one random letter-match |
-| `GET /api/books` | — | `books[]` of `he`, `en`, `fr`, `section`, `chapters`, `chaptersHe[]` |
+| `GET /api/books` | — | `books[]` of `he`, `en`, `fr`, `section`, `chapters`, `chaptersHe[]`; and `commentaries[]` of `id`, `he`, `en`, `fr`, the enabled display-only ones |
 | `GET /api/chapter` | `book` (Hebrew name, required), `chapter` (1..999, required) | `book`, `section`, `chapter`, `chapterHe`, `ref`, `verses[]`, `previous`, `next` — see `app/reader.py` |
+| `GET /api/commentary` | `book`, `chapter` (1..999), `commentary` (an id from `/api/books`), all required | `commentary`, `license`, `verses[]` of `verse` and `text` (only verses it has text on); 404 with `unknown_book`, `chapter_not_found` or `unknown_commentary` |
 | `GET /` + `/static/*` | — | The frontend, same origin |
 
 ### Error contract
@@ -258,6 +259,7 @@ Build-time only; never imported by the running service.
 | `clean_rashi_comment(text)` | Strips every HTML tag but a hand-verified `<b>`/`<small>`/`<br>` before the comment is trusted as `innerHTML` client-side |
 | `align_rashi(chapters, rashi, book)` | Matches Rashi's per-chapter comments to `chapters` positionally; drops a chapter's Rashi entirely rather than risk attaching a comment to the wrong verse when the chapter boundaries disagree |
 | `fetch_book` / `fetch_rashi` | Pull one book's text / Rashi from Sefaria's export, threaded via `ThreadPoolExecutor(max_workers=8)` |
+| `scripts/build_commentaries.py` | Builds one display-only commentary's `data/<id>.zip`: per book, the fullest version whose license is allowed (`choose_version`, `usable_text`), cleaned with `clean_rashi_comment` and lined up by position (`align`); a book with no usable version is left out and reported |
 | `main()` | Orchestrates the fetch, validates `BOOK_NAMES_FR` covers every book, writes `data/tanakh.json.gz` |
 
 ## Logging
@@ -277,6 +279,8 @@ Arrange–Act–Assert throughout, no mocking of the corpus.
 | `tests/test_search.py` | Index correctness, all three match kinds, pair search across chapter boundaries, the cleaned-text regressions, and the HTTP surface via `TestClient` — status codes, the error contract, `limit` clamping |
 | `tests/test_reader.py` | A chapter's verses and neighbours at the start, middle and end of the Tanakh and across a book boundary, every error with its code, the JSON shape, Rashi present and absent, and the book listing with its Hebrew numerals, on the real data |
 | `tests/test_phrase.py` | Query validation, `matched_word_indexes` rules (ordered, anywhere, partial, niqqud) as a table, both result tiers against the real corpus, highlights, the index-alignment invariant, and the `/api/phrase` endpoint |
+| `tests/test_commentary.py` | The store reading real archives and its cache, `ENABLED_COMMENTARIES`, the verses a commentary has text on, and `/api/commentary` and the `commentaries` in `/api/books` with their error codes |
+| `tests/test_build_commentaries.py` | Which title is a commentary's own, alignment, which version is chosen, and the archive layout, on synthetic data |
 | `tests/test_build_dataset.py` | `clean_verse()` and `clean_rashi_comment()` against the documented editorial-apparatus cases, without needing the real Sefaria export |
 
 The real dataset loads once per session in `test_search.py`. The trade is a

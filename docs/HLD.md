@@ -144,6 +144,11 @@ There is no database, cache, or blob store. The single store is
 and indexed into process memory at startup by `load_corpus()`, cached to one
 entry so every request shares one instance.
 
+Three more commentaries (Onkelos, Ibn Ezra, Metzudat David) are zips, `data/<id>.zip`,
+not part of that file: a member per book, read by `app/commentary.py` when a chapter
+of the book is asked for, with the last four books kept. `ENABLED_COMMENTARIES`
+chooses which are served.
+
 The data is immutable and versioned by the `source`/`version`/`license`
 fields inside the file itself, reported by `/api/health`. Backup and DR are
 therefore the git repository: the corpus is a tracked artifact, and

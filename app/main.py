@@ -23,6 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
+from .commentary import CommentaryError, CommentaryStores
 from .corpus import load_corpus
 from .phrase import InvalidPhrase, PhraseQuery, search_phrase
 from .reader import ReaderError, chapter_page, list_books
@@ -197,15 +198,22 @@ def phrase_endpoint(
     return search_phrase(load_corpus(), query, limit=limit)
 
 
+commentary_stores = CommentaryStores.from_environ(os.environ)
+
+
 @app.get("/api/books")
 def books_endpoint() -> Payload:
-    """The books and their chapter counts, for the reader's pickers."""
-    return {"books": list_books(load_corpus())}
+    """The books and their chapter counts, and the commentaries on offer, for the reader."""
+    return {
+        "books": list_books(load_corpus()),
+        "commentaries": [info.as_dict() for info in commentary_stores.infos()],
+    }
 
 
 READER_ERRORS = {
     "unknown_book": "הספר המבוקש אינו קיים",
     "chapter_not_found": "הפרק המבוקש אינו קיים",
+    "unknown_commentary": "הפירוש המבוקש אינו קיים",
 }
 
 
@@ -222,6 +230,24 @@ def chapter_endpoint(
             status_code=404, detail=error(exc.code, READER_ERRORS[exc.code])
         ) from None
     return page.as_dict()
+
+
+@app.get("/api/commentary")
+def commentary_endpoint(
+    book: str = Query(..., description="The book, by Hebrew name; see /api/books"),
+    chapter: int = Query(..., ge=1, le=999, description="The chapter number"),
+    commentary: str = Query(..., description="A commentary's id; see /api/books"),
+) -> Payload:
+    """One commentary's text on each verse of a chapter."""
+    try:
+        page = chapter_page(load_corpus(), book, chapter)
+        found = commentary_stores.on_chapter(commentary, page.book["en"], chapter, len(page.verses))
+    except (ReaderError, CommentaryError) as exc:
+        raise HTTPException(
+            status_code=404, detail=error(exc.code, READER_ERRORS[exc.code])
+        ) from None
+    # `verse.number` is the verse's place in the chapter, as the commentary is lined up.
+    return found.as_dict()
 
 
 @app.get("/api/random")
