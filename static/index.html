@@ -109,6 +109,14 @@
           <select class="select reader-chapter" id="reader-chapter" data-i18n-aria-label="reader.chapter" aria-label="פרק"></select>
         </div>
       </div>
+      <div class="reader-tools" id="reader-tools" hidden>
+        <button type="button" class="copy" id="reader-save" aria-pressed="false" data-i18n="reader.save">שמירה</button>
+        <button type="button" class="copy" id="reader-download" data-i18n="reader.download">הורדה</button>
+        <details class="reader-commentaries reader-saved" id="reader-saved">
+          <summary data-i18n="reader.savedList">שמורים</summary>
+          <div class="reader-commentaries-panel reader-saved-panel" id="reader-saved-panel"></div>
+        </details>
+      </div>
       <div class="reader-nav">
         <button type="button" class="copy reader-prev" data-i18n="reader.previous">הפרק הקודם</button>
         <details class="reader-commentaries" id="reader-commentaries">

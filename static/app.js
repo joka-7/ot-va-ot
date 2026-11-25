@@ -176,6 +176,10 @@
 
   function apiFetch(path, options) {
     options = options || {};
+    // With no connection at all there is no server to wake: fail now rather than retry.
+    if (navigator.onLine === false && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+      return Promise.reject(new Error("offline"));
+    }
     var deadline = Date.now() + WAKE_RETRY_BUDGET_MS;
 
     function attempt(n) {
@@ -693,6 +697,7 @@
 
     if (readerBooks) populateReaderBooks();
     syncReaderCommentaries();
+    if (readerBooks) syncReaderTools();
     if (readerData) renderReaderChapter(readerData);
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
@@ -1107,6 +1112,11 @@
   var readerCommentariesEl = document.getElementById("reader-commentaries");
   var readerCommentariesPanel = document.getElementById("reader-commentaries-panel");
   var readerPageEl = document.getElementById("reader-page");
+  var readerToolsEl = document.getElementById("reader-tools");
+  var readerSaveBtn = document.getElementById("reader-save");
+  var readerDownloadBtn = document.getElementById("reader-download");
+  var readerSavedEl = document.getElementById("reader-saved");
+  var readerSavedPanel = document.getElementById("reader-saved-panel");
 
   // GET /api/books, loaded the first time the reader opens.
   var readerBooks = null;
@@ -1117,6 +1127,7 @@
   var readerRender = 0; // likewise for a commentary that answers after the page was redrawn
   var readerCommentaries = []; // GET /api/books's commentaries, besides Rashi
   var readerCommentaryCache = {};
+  var readerShowingSaved = false; // the page on screen is a copy kept on the device
 
   function loadReaderPosition() {
     try {
@@ -1161,6 +1172,271 @@
   }
 
   var readerCommentaryChoice = loadReaderCommentaryChoice();
+
+  // --- Saved chapters ----------------------------------------------------
+  //
+  // A chapter the visitor saves, and the last few they read, are kept in this
+  // browser's IndexedDB (never sent anywhere) with the commentaries that were loaded
+  // for them, so they open again with no connection. Where IndexedDB is not available
+  // (some private windows) the save controls are hidden and the Read tab works as before.
+
+  var SAVED_DB_NAME = "pasuk-leshem";
+  var SAVED_STORE = "saved";
+  var RECENT_LIMIT = 20;
+  var savedDbPromise = null;
+  var savingNow = false; // a save or un-save is in progress
+
+  function savedDb() {
+    if (savedDbPromise) return savedDbPromise;
+    savedDbPromise = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) {
+        reject(new Error("no indexedDB"));
+        return;
+      }
+      var open = indexedDB.open(SAVED_DB_NAME, 1);
+      open.onupgradeneeded = function () {
+        open.result.createObjectStore(SAVED_STORE, { keyPath: "id" });
+      };
+      open.onsuccess = function () { resolve(open.result); };
+      open.onerror = function () { reject(open.error); };
+    });
+    return savedDbPromise;
+  }
+
+  function savedRequest(mode, run) {
+    return savedDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var transaction = db.transaction(SAVED_STORE, mode);
+        var request = run(transaction.objectStore(SAVED_STORE));
+        transaction.oncomplete = function () { resolve(request && request.result); };
+        transaction.onerror = function () { reject(transaction.error); };
+        transaction.onabort = function () { reject(transaction.error); };
+      });
+    });
+  }
+
+  function savedAll() {
+    return savedRequest("readonly", function (store) { return store.getAll(); });
+  }
+
+  function savedPut(item) {
+    return savedRequest("readwrite", function (store) { return store.put(item); });
+  }
+
+  function savedDelete(id) {
+    return savedRequest("readwrite", function (store) { return store.delete(id); });
+  }
+
+  function savedKey(data) {
+    return data.book.he + "|" + data.chapter;
+  }
+
+  // The commentaries loaded so far for this chapter, to keep beside it.
+  function loadedCommentariesFor(data) {
+    var found = {};
+    readerCommentaryList().forEach(function (commentary) {
+      var cached = readerCommentaryCache[commentary.id + "|" + data.book.he + "|" + data.chapter];
+      if (cached) found[commentary.id] = cached;
+    });
+    return found;
+  }
+
+  // One chapter as it is kept: `kept` is true for one the visitor saved, false for one
+  // only remembered as recently read.
+  function savedItem(data, kept) {
+    var loaded = loadedCommentariesFor(data);
+    return {
+      id: savedKey(data),
+      kept: kept,
+      title: data.ref,
+      savedAt: Date.now(),
+      data: data,
+      commentaries: loaded,
+      commentaryList: readerCommentaryList().filter(function (commentary) { return loaded[commentary.id]; }),
+    };
+  }
+
+  // The newer commentaries over the ones already kept, so reading a saved page again can
+  // only add to its saved copy.
+  function mergedCommentaries(kept, loaded) {
+    var merged = {};
+    Object.keys(kept || {}).forEach(function (id) { merged[id] = kept[id]; });
+    Object.keys(loaded || {}).forEach(function (id) { merged[id] = loaded[id]; });
+    return merged;
+  }
+
+  // Forget the oldest of the merely recent items past RECENT_LIMIT.
+  function pruneRecent() {
+    return savedRequest("readwrite", function (store) {
+      var all = store.getAll();
+      all.onsuccess = function () {
+        var recent = all.result.filter(function (item) { return !item.kept; });
+        recent.sort(function (a, b) { return b.savedAt - a.savedAt; });
+        recent.slice(RECENT_LIMIT).forEach(function (old) { store.delete(old.id); });
+      };
+      return all;
+    });
+  }
+
+  // Remember the item just read. A saved one keeps its saved state, date and commentaries
+  // (new ones are added); the read and the write are one transaction, so a save made at the
+  // same moment is never undone.
+  function rememberRecent(data) {
+    savedRequest("readwrite", function (store) {
+      var read = store.get(savedKey(data));
+      read.onsuccess = function () {
+        var existing = read.result;
+        var item = savedItem(data, existing ? existing.kept : false);
+        if (existing) {
+          item.commentaries = mergedCommentaries(existing.commentaries, item.commentaries);
+          item.commentaryList = existing.commentaryList.length > item.commentaryList.length
+            ? existing.commentaryList : item.commentaryList;
+          if (existing.kept) item.savedAt = existing.savedAt;
+        }
+        store.put(item);
+      };
+      return read;
+    }).then(pruneRecent).then(renderSavedList).catch(function () { /* nothing is remembered; reading is unaffected */ });
+  }
+
+  function syncSaveButton() {
+    if (!readerData) {
+      readerSaveBtn.setAttribute("aria-pressed", "false");
+      readerSaveBtn.textContent = t(locale, "reader.save");
+      return;
+    }
+    savedAll().then(function (items) {
+      var saved = items.some(function (item) { return item.id === savedKey(readerData) && item.kept; });
+      readerSaveBtn.setAttribute("aria-pressed", saved ? "true" : "false");
+      readerSaveBtn.textContent = t(locale, saved ? "reader.saved" : "reader.save");
+    }).catch(function () {});
+  }
+
+  // Save, or un-save, the chapter on screen, with the commentaries loaded for it.
+  function toggleSaved() {
+    if (!readerData || savingNow) return;
+    savingNow = true;
+    var data = readerData;
+    var wasSaved = readerSaveBtn.getAttribute("aria-pressed") === "true";
+    var step = wasSaved
+      ? savedPut(savedItem(data, false)).then(pruneRecent)
+      : Promise.all(readerCommentaryList().filter(function (commentary) {
+        return commentary.id !== "rashi" && readerCommentaryChoice.indexOf(commentary.id) !== -1;
+      }).map(function (commentary) {
+        return loadReaderCommentary(commentary.id, data).catch(function () { return null; });
+      })).then(function () { return savedPut(savedItem(data, true)); });
+    step.then(function () {
+      syncSaveButton();
+      renderSavedList();
+    }).catch(function () {
+      readerSaveBtn.textContent = t(locale, "reader.saveFailed");
+    }).then(function () { savingNow = false; });
+  }
+
+  // Show a kept chapter from the device, whether or not there is a connection.
+  function openSaved(item) {
+    // The commentary list is not there when the server cannot be reached: use the saved one.
+    if (!readerCommentaries.length) {
+      readerCommentaries = (item.commentaryList || []).filter(function (commentary) { return commentary.id !== "rashi"; });
+    }
+    Object.keys(item.commentaries || {}).forEach(function (id) {
+      readerCommentaryCache[id + "|" + item.data.book.he + "|" + item.data.chapter] = item.commentaries[id];
+    });
+    readerRequest++;
+    readerShowingSaved = true;
+    readerPosition = { book: item.data.book.he, chapter: item.data.chapter };
+    readerData = item.data;
+    if (readerBooks) syncReaderPickers(); // the book list is not there when the server cannot be reached
+    renderReaderChapter(item.data);
+    readerPageEl.setAttribute("aria-busy", "false");
+    history.pushState(null, "", readerHash(readerPosition));
+    readerSavedEl.open = false;
+    readerEl.scrollIntoView({ block: "start" });
+  }
+
+  function renderSavedList() {
+    savedAll().then(function (items) {
+      readerSavedPanel.textContent = "";
+      var groups = [["reader.savedHeading", true], ["reader.recentHeading", false]];
+      var any = false;
+      groups.forEach(function (group) {
+        var chosen = items.filter(function (item) { return item.kept === group[1]; });
+        chosen.sort(function (a, b) { return b.savedAt - a.savedAt; });
+        if (!chosen.length) return;
+        any = true;
+        readerSavedPanel.appendChild(el("p", "reader-saved-heading", t(locale, group[0])));
+        chosen.forEach(function (item) {
+          var row = el("div", "reader-saved-row");
+          var open = hebrewSpan("button", "reader-saved-open", item.title);
+          open.type = "button";
+          open.addEventListener("click", function () { openSaved(item); });
+          var remove = el("button", "reader-saved-remove", "✕");
+          remove.type = "button";
+          remove.setAttribute("aria-label", t(locale, "reader.delete"));
+          remove.addEventListener("click", function () {
+            savedDelete(item.id).then(function () { renderSavedList(); syncSaveButton(); }).catch(function () {
+              remove.textContent = "!"; // the row is still there: the delete did not happen
+            });
+          });
+          row.appendChild(open);
+          row.appendChild(remove);
+          readerSavedPanel.appendChild(row);
+        });
+      });
+      if (!any) readerSavedPanel.appendChild(el("p", "reader-saved-heading", t(locale, "reader.savedEmpty")));
+    }).catch(function () {});
+  }
+
+  // --- Downloading what is on screen ---------------------------------------
+
+  var DOWNLOAD_FALLBACK_CSS =
+    "body{font-family:serif;max-width:46rem;margin:1rem auto;padding:0 1rem;line-height:1.9}" +
+    ".reader-verse{display:flex;gap:.6rem}.reader-verse-num{flex:0 0 1.9rem;font-weight:700}";
+
+  function downloadFile(name, html) {
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 10000);
+  }
+
+  // The chapter as the visitor sees it (the notes they opened and the ones they did not,
+  // all open) in one self-contained .html file, styled with the app's own stylesheet.
+  function downloadReaderPage() {
+    if (!readerData) return;
+    var title = readerData.ref;
+    // An English name: a Hebrew file name is lost in some browsers' downloads.
+    var fileName = readerData.book.en.replace(/[^A-Za-z0-9]+/g, "_") + "_" + readerData.chapter + ".html";
+    fetch("styles.css").then(function (response) {
+      if (!response.ok) throw new Error("css " + response.status);
+      return response.text();
+    }).catch(function () { return DOWNLOAD_FALLBACK_CSS; }).then(function (css) {
+      var doc = document.implementation.createHTMLDocument(title);
+      doc.documentElement.lang = locale;
+      doc.documentElement.dir = "rtl";
+      doc.head.appendChild(doc.createElement("meta")).setAttribute("charset", "utf-8");
+      doc.head.appendChild(doc.createElement("style")).textContent = css;
+      var page = readerPageEl.cloneNode(true);
+      page.removeAttribute("id");
+      page.querySelectorAll("details").forEach(function (details) { details.setAttribute("open", ""); });
+      doc.body.appendChild(page);
+      downloadFile(fileName, "<!doctype html>\n" + doc.documentElement.outerHTML);
+    }).catch(function () {
+      readerDownloadBtn.textContent = t(locale, "reader.downloadFailed");
+      setTimeout(function () { readerDownloadBtn.textContent = t(locale, "reader.download"); }, 3000);
+    });
+  }
+
+  function syncReaderTools() {
+    savedDb().then(function () {
+      readerToolsEl.hidden = false;
+      renderSavedList();
+      syncSaveButton();
+    }).catch(function () { readerToolsEl.hidden = true; });
+  }
 
   // Rashi comes with the chapter; the others are fetched, and listed by /api/books.
   function readerCommentaryList() {
@@ -1229,6 +1505,7 @@
         loaded.verses.forEach(function (verse) {
           if (bodies[verse.verse]) insertCommentaryNote(bodies[verse.verse], commentary, verse.text, order);
         });
+        if (readerData === data) rememberRecent(data);
         status.textContent = !loaded.verses.length
           ? t(locale, "reader.commentaryNone", { name: name })
           : loaded.license ? t(locale, "reader.commentaryCredit", { name: name, license: loaded.license }) : "";
@@ -1326,6 +1603,7 @@
   function renderReaderChapter(data) {
     readerPageEl.textContent = "";
     readerPageEl.appendChild(hebrewSpan("h2", "reader-citation", data.ref));
+    if (readerShowingSaved) readerPageEl.appendChild(el("p", "attribution", t(locale, "reader.savedCopy")));
     var withRashi = readerCommentaryChoice.indexOf("rashi") !== -1;
     var bodies = {};
     data.verses.forEach(function (verse) {
@@ -1363,6 +1641,7 @@
 
   function showReaderChapter(position, pushHash) {
     var request = ++readerRequest;
+    readerShowingSaved = false;
     readerPosition = position;
     readerData = null;
     syncReaderPickers();
@@ -1398,6 +1677,8 @@
         readerGood = { book: position.book, chapter: position.chapter };
         saveReaderPosition(position);
         renderReaderChapter(data);
+        rememberRecent(data);
+        syncSaveButton();
         if (!(position.verse && showReaderTarget(position.verse))) readerEl.scrollIntoView({ block: "start" });
       })
       .catch(function (error) {
@@ -1442,10 +1723,13 @@
         var start = position || readerPosition || loadReaderPosition() || { book: readerBooks[0].he, chapter: 1 };
         readerPosition = start;
         syncReaderCommentaries();
+        syncReaderTools();
         populateReaderBooks();
         showReaderChapter(start, pushHash);
       })
       .catch(function () {
+        // Without the server the saved chapters are still there to open.
+        syncReaderTools();
         readerPageEl.textContent = "";
         readerPageEl.appendChild(notice(t(locale, "error.title"), t(locale, "reader.error"), "error"));
       });
@@ -1478,6 +1762,12 @@
     if (!readerData) return;
     if (event.target.closest(".reader-prev") && readerData.previous) goToReaderChapter(readerData.previous);
     if (event.target.closest(".reader-next") && readerData.next) goToReaderChapter(readerData.next);
+  });
+
+  readerSaveBtn.addEventListener("click", toggleSaved);
+  readerDownloadBtn.addEventListener("click", downloadReaderPage);
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest("#reader-saved")) readerSavedEl.open = false;
   });
 
   readerCommentariesPanel.addEventListener("change", function (event) {

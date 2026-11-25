@@ -382,6 +382,26 @@ them (the Targumim, being translations, 2 to 4%), and in only a neighbouring ver
 at most 0.3%, which a one-verse shift would raise sharply. Rebuild one with
 `python -m scripts.build_commentaries --commentary onkelos` (or any other id).
 
+### Saving, recent chapters and download
+
+The Read tab has a **"שמירה"** button, a **"הורדה"** button and a **"שמורים"** list
+(`reader-tools` in `static/index.html`, the "Saved chapters" part of `static/app.js`).
+
+- **Save** keeps the chapter on screen in this browser's IndexedDB (database
+  `pasuk-leshem`, store `saved`), with the commentaries loaded for it. Nothing is sent
+  anywhere. A saved chapter opens from the list with no connection, with a note that it is a
+  copy kept on the device; saving again un-saves it.
+- **Recent**: each chapter read is also remembered, the last 20, listed under "נקראו
+  לאחרונה", unless it was saved.
+- **Download** writes the chapter as it is shown, every note open, into one self-contained
+  `.html` file (`Isaiah_2.html`), styled with the app's stylesheet.
+- With no connection `apiFetch` fails at once instead of retrying as if for a sleeping
+  server, so the reader shows its error and the saved list stays usable. If IndexedDB is
+  not available the three controls are hidden.
+
+Checked by driving a browser (save, list, download, then the connection cut and a saved
+chapter opened); the front end has no unit tests. Search results are not saved yet.
+
 ## Tests
 
 ```bash
