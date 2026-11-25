@@ -93,6 +93,14 @@
         <button class="chip" type="button" dir="rtl" data-q="על פני">על פני</button>
         <button class="chip" type="button" dir="rtl" data-q="יְהִי אוֹר">יְהִי אוֹר</button>
       </div>
+      <div class="reader-tools search-tools" id="search-tools" hidden>
+        <button type="button" class="copy" id="search-save" aria-pressed="false" data-i18n="reader.save">שמירה</button>
+        <button type="button" class="copy" id="search-download" data-i18n="reader.download">הורדה</button>
+        <details class="reader-commentaries reader-saved" id="search-saved">
+          <summary data-i18n="reader.savedList">שמורים</summary>
+          <div class="reader-commentaries-panel reader-saved-panel" id="search-saved-panel"></div>
+        </details>
+      </div>
     </form>
 
     <div class="waking" id="waking" role="status" aria-live="polite" hidden>

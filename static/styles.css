@@ -954,6 +954,7 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .reader-tools:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 .6rem; }
 .reader-tools .copy { min-height: 44px; padding: .3rem .8rem; font-size: .9rem; }
 .reader-tools .copy[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.search-tools { margin-top: .6rem; }
 .reader-saved-heading { margin: .4rem .6rem .1rem; font-size: .8rem; font-weight: 700; color: var(--text-faint); }
 .reader-saved-row { display: flex; align-items: center; gap: .25rem; }
 .reader-saved-open {
