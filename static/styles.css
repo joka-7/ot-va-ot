@@ -951,6 +951,32 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .reader-commentary-option input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); }
 .reader-commentary-option:has(input:disabled) { opacity: .5; cursor: default; }
+.reader-tools:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 .6rem; }
+.reader-tools .copy { min-height: 44px; padding: .3rem .8rem; font-size: .9rem; }
+.reader-tools .copy[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.reader-saved-heading { margin: .4rem .6rem .1rem; font-size: .8rem; font-weight: 700; color: var(--text-faint); }
+.reader-saved-row { display: flex; align-items: center; gap: .25rem; }
+.reader-saved-open {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0 .6rem;
+  font: 500 .95rem var(--font);
+  color: var(--text);
+  text-align: start;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.reader-saved-remove {
+  flex: 0 0 44px;
+  min-height: 44px;
+  font: 500 .9rem var(--font);
+  color: var(--text-faint);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.reader-saved-panel { min-width: 14rem; max-height: 60vh; overflow-y: auto; }
 .reader-page {
   background: var(--surface);
   border: 1px solid var(--line);
