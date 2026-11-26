@@ -30,6 +30,7 @@ ot-va-ot/
 │   ├── ibn-ezra.zip
 │   ├── kli-yakar.zip
 │   ├── malbim.zip
+│   ├── mekhilta.zip
 │   ├── metzudat-david.zip
 │   ├── onkelos.zip
 │   ├── or-hachaim.zip
@@ -37,7 +38,9 @@ ot-va-ot/
 │   ├── ralbag.zip
 │   ├── rashbam.zip
 │   ├── sforno.zip
+│   ├── sifrei-devarim.zip
 │   ├── tanakh.json.gz
+│   ├── tanchuma-buber.zip
 │   └── targum-jonathan.zip
 ├── docs/
 │   ├── HLD.md                      # High-level design — אות ואות
@@ -46,6 +49,7 @@ ot-va-ot/
 ├── scripts/
 │   ├── build_commentaries.py       # Build the commentaries the reader shows beside a chapter but never searches.
 │   ├── build_dataset.py            # Build the local Tanakh dataset used by the app.
+│   ├── build_midrashim.py          # Build the midrashim the reader shows under a verse of the Torah but never…
 │   └── build_parashot.py           # Build data/parashot.json: where each of the 54 weekly portions starts…
 ├── static/
 │   ├── icons/
@@ -64,6 +68,7 @@ ot-va-ot/
 ├── tests/
 │   ├── test_build_commentaries.py  # Tests for scripts/build_commentaries.py, on synthetic data (no network).
 │   ├── test_build_dataset.py       # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
+│   ├── test_build_midrashim.py     # Tests for scripts/build_midrashim.py, on synthetic data (no network).
 │   ├── test_commentary.py          # Tests for app/commentary.py and /api/commentary, on the real archives.
 │   ├── test_hebrew.py              # Tests for the Hebrew normalization primitives.
 │   ├── test_parasha.py             # Tests for app/parasha.py and /api/parasha: the weekly portion cut into…

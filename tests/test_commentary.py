@@ -75,6 +75,9 @@ class TestCommentaryStores:
             ("onkelos", "Isaiah", 1, 31, None),  # a book the commentary does not cover
             ("ibn-ezra", "Genesis", 1, 31, None),  # Sefaria has no allowed version of it
             ("onkelos", "Genesis", 999, 31, None),  # a chapter past the end
+            ("tanchuma-buber", "Genesis", 1, 31, 1),  # a midrash, linked to verse 1
+            ("mekhilta", "Exodus", 12, 51, 1),  # first linked verse of the chapter
+            ("sifrei-devarim", "Deuteronomy", 6, 25, 4),  # the Shema
         ],
     )
     def test_gives_the_verses_it_has_text_on(self, commentary, book, chapter, verses, first_verse):

@@ -42,22 +42,27 @@ class Commentary:
     en: str
     fr: str
     data_file: str  # under data/
+    clamp: bool = False  # long notes, shown shortened with a "show more" control
 
     @property
     def data_path(self) -> Path:
         """Where the archive is, under ``data/``."""
         return DATA_DIR / self.data_file
 
-    def as_dict(self) -> dict[str, str]:
+    def as_dict(self) -> dict[str, str | bool]:
         """The JSON shape of one entry in ``GET /api/books``'s ``commentaries``."""
-        return {"id": self.id, "he": self.he, "en": self.en, "fr": self.fr}
+        shape: dict[str, str | bool] = {"id": self.id, "he": self.he, "en": self.en, "fr": self.fr}
+        return {**shape, "clamp": True} if self.clamp else shape
 
 
-def _commentary(id: str, he: str, en: str, fr: str | None = None) -> Commentary:
-    return Commentary(id, he, en, fr or en, f"{id}.zip")
+def _commentary(
+    id: str, he: str, en: str, fr: str | None = None, clamp: bool = False
+) -> Commentary:
+    return Commentary(id, he, en, fr or en, f"{id}.zip", clamp)
 
 
-# In the order the reader lists them: the translations, then the Rishonim, then the Acharonim.
+# In the order the reader lists them: the translations, then the Rishonim, then the Acharonim,
+# then the midrashim (long passages, built by scripts/build_midrashim.py).
 KNOWN_COMMENTARIES: tuple[Commentary, ...] = (
     _commentary("onkelos", "תרגום אונקלוס", "Targum Onkelos"),
     _commentary("targum-jonathan", "תרגום יונתן", "Targum Jonathan"),
@@ -70,6 +75,9 @@ KNOWN_COMMENTARIES: tuple[Commentary, ...] = (
     _commentary("or-hachaim", "אור החיים", "Or HaChaim"),
     _commentary("kli-yakar", "כלי יקר", "Kli Yakar"),
     _commentary("malbim", "מלבי״ם", "Malbim"),
+    _commentary("mekhilta", "מכילתא דרבי ישמעאל", "Mekhilta d'Rabbi Yishmael", clamp=True),
+    _commentary("tanchuma-buber", "תנחומא (בובר)", "Midrash Tanchuma (Buber)", clamp=True),
+    _commentary("sifrei-devarim", "ספרי דברים", "Sifrei Devarim", clamp=True),
 )
 
 

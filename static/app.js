@@ -1764,6 +1764,26 @@
     });
   }
 
+  // A long note is shown shortened, with a button for the rest. It can only be measured once
+  // its disclosure is open, so the button is added then.
+  function clampNote(details, content) {
+    content.classList.add("clamped");
+    details.addEventListener("toggle", function () {
+      if (!details.open || details.querySelector(".rashi-more")) return;
+      if (content.scrollHeight <= content.clientHeight + 4) {
+        content.classList.remove("clamped");
+        return;
+      }
+      var more = el("button", "copy rashi-more", t(locale, "reader.showMore"));
+      more.type = "button";
+      more.addEventListener("click", function () {
+        var open = content.classList.toggle("clamped");
+        more.textContent = t(locale, open ? "reader.showMore" : "reader.showLess");
+      });
+      details.appendChild(more);
+    });
+  }
+
   // A commentary's note under a verse, among that verse's other notes in the order the
   // commentaries are listed, whichever answered first. Its text is limited at build time
   // to <b>/<small>/<br> (scripts/build_dataset.py's clean_rashi_comment), as Rashi's is.
@@ -1774,6 +1794,7 @@
     var content = hebrewSpan("div", "rashi-text", null);
     content.innerHTML = text;
     details.appendChild(content);
+    if (commentary.clamp) clampNote(details, content);
     var later = null;
     body.querySelectorAll("details").forEach(function (note) {
       if (!later && Number(note.dataset.order) > order) later = note;

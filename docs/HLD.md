@@ -151,7 +151,9 @@ entry so every request shares one instance.
 Three more commentaries (Onkelos, Ibn Ezra, Metzudat David) are zips, `data/<id>.zip`,
 not part of that file: a member per book, read by `app/commentary.py` when a chapter
 of the book is asked for, with the last four books kept. `ENABLED_COMMENTARIES`
-chooses which are served.
+chooses which are served. Three midrashim (Mekhilta, Tanchuma Buber, Sifrei Devarim) are
+zips of the same shape, lined up through Sefaria's verse links by
+`scripts/build_midrashim.py`.
 
 The data is immutable and versioned by the `source`/`version`/`license`
 fields inside the file itself, reported by `/api/health`. Backup and DR are
