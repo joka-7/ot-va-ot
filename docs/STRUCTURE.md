@@ -21,6 +21,7 @@ ot-va-ot/
 │   ├── corpus.py                   # Loading and indexing the Tanakh corpus.
 │   ├── hebrew.py                   # Hebrew text normalization primitives.
 │   ├── main.py                     # FastAPI application.
+│   ├── parasha.py                  # The weekly portion split into seven days, for reading it twice with Targum.
 │   ├── phrase.py                   # Free-text search: a word or phrase anywhere in the Tanakh.
 │   ├── reader.py                   # Reading one chapter of the Tanakh: its verses, and the chapters on either…
 │   └── search.py                   # Verse matching.
@@ -32,6 +33,7 @@ ot-va-ot/
 │   ├── metzudat-david.zip
 │   ├── onkelos.zip
 │   ├── or-hachaim.zip
+│   ├── parashot.json
 │   ├── ralbag.zip
 │   ├── rashbam.zip
 │   ├── sforno.zip
@@ -43,7 +45,8 @@ ot-va-ot/
 │   └── STRUCTURE.md                # Repository structure
 ├── scripts/
 │   ├── build_commentaries.py       # Build the commentaries the reader shows beside a chapter but never searches.
-│   └── build_dataset.py            # Build the local Tanakh dataset used by the app.
+│   ├── build_dataset.py            # Build the local Tanakh dataset used by the app.
+│   └── build_parashot.py           # Build data/parashot.json: where each of the 54 weekly portions starts…
 ├── static/
 │   ├── icons/
 │   │   ├── app-icon.png
@@ -63,6 +66,7 @@ ot-va-ot/
 │   ├── test_build_dataset.py       # Tests for the Rashi-alignment logic in scripts/build_dataset.py.
 │   ├── test_commentary.py          # Tests for app/commentary.py and /api/commentary, on the real archives.
 │   ├── test_hebrew.py              # Tests for the Hebrew normalization primitives.
+│   ├── test_parasha.py             # Tests for app/parasha.py and /api/parasha: the weekly portion cut into…
 │   ├── test_phrase.py              # Tests for free-text word and phrase search.
 │   ├── test_reader.py              # Tests for app/reader.py: reading one chapter of the Tanakh, on the real data.
 │   └── test_search.py              # Tests for the corpus, the matching logic, and the HTTP API.

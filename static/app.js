@@ -710,6 +710,7 @@
     if (readerBooks) syncReaderTools();
     if (searchToolsReady) syncSearchTools();
     if (searchToolsReady) setStaticToolLabels();
+    if (typeof renderWeek === "function") renderWeek();
     if (readerData) renderReaderChapter(readerData);
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
@@ -1842,11 +1843,12 @@
   }
 
   function showView(name) {
-    var reading = name === "read";
-    form.hidden = reading;
-    results.hidden = reading;
-    searchHeadEl.hidden = reading;
-    readerEl.hidden = !reading;
+    var searching = name === "search";
+    form.hidden = !searching;
+    results.hidden = !searching;
+    searchHeadEl.hidden = !searching;
+    readerEl.hidden = name !== "read";
+    weekEl.hidden = name !== "week";
     viewTabs.querySelectorAll(".view-tab").forEach(function (tab) {
       var active = tab.dataset.view === name;
       tab.classList.toggle("active", active);
@@ -2038,7 +2040,9 @@
     if (!tab) return;
     if (tab.dataset.view === "read") {
       openReader(null, true);
-    } else if (!readerEl.hidden) {
+    } else if (tab.dataset.view === "week") {
+      openWeek(true);
+    } else if (!readerEl.hidden || !weekEl.hidden) {
       showView("search");
       history.pushState(null, "", searchHash || location.pathname + location.search);
     }
@@ -2088,6 +2092,156 @@
     }
   });
 
+  // --- Weekly parasha ----------------------------------------------------------
+  // The week's portion in seven days, Saturday (ראשון) to Friday (שביעי), each to read
+  // twice and once in Targum. What was read is kept in this browser, per week and day.
+  var WEEK_PROGRESS_KEY = "pasuk-leshem:week-progress";
+  var WEEK_CHECKS = ["week.mikra1", "week.mikra2", "week.targum"];
+  var weekEl = document.getElementById("week");
+  var weekTitleEl = document.getElementById("week-title");
+  var weekProgressEl = document.getElementById("week-progress");
+  var weekDaysEl = document.getElementById("week-days");
+  var weekData = null; // the last /api/parasha response, kept to redraw on a language switch
+  var weekRequest = 0; // a newer week asked for makes an older answer stale
+  var weekDate = new Date(); // any day in the week on screen
+
+  function isoDate(date) {
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    return date.getFullYear() + "-" + month + "-" + String(date.getDate()).padStart(2, "0");
+  }
+
+  function readWeekProgress() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(WEEK_PROGRESS_KEY));
+      return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+    } catch (err) {
+      return {}; // private browsing, or a value that is not JSON: nothing is ticked
+    }
+  }
+
+  function setWeekCheck(day, index, checked) {
+    var progress = readWeekProgress();
+    var key = weekData.weekStart + "|" + day;
+    var ticks = progress[key] || [false, false, false];
+    ticks[index] = checked;
+    progress[key] = ticks;
+    try {
+      localStorage.setItem(WEEK_PROGRESS_KEY, JSON.stringify(progress));
+    } catch (err) {
+      /* the tick shows for now but is not kept */
+    }
+    renderWeek();
+  }
+
+  function weekReference(part) {
+    var info = readerBookInfo(part.book);
+    var book = (info && info[locale]) || part.book;
+    function point(spot) {
+      return locale === "he" ? spot.chapterHe + " " + spot.verseHe : spot.chapter + ":" + spot.verse;
+    }
+    return book + " " + point(part.start) + " – " + point(part.end);
+  }
+
+  function weekReadLink(part) {
+    var position = { book: part.book, chapter: part.start.chapter, verse: part.start.verse };
+    var link = el("a", "copy", t(locale, "week.read"));
+    link.href = readerHash(position);
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      openReader(position, true);
+    });
+    return link;
+  }
+
+  function weekDayRow(part, ticks, today) {
+    var row = el("li", "week-day");
+    var complete = ticks.every(Boolean);
+    if (part.date === today) row.classList.add("today");
+    if (complete) row.classList.add("complete");
+    var top = el("div", "week-day-top");
+    top.appendChild(el("span", "week-day-name", t(locale, "week.day" + part.day)));
+    var when = new Date(part.date + "T00:00:00").toLocaleDateString(locale === "he" ? "he-IL" : locale,
+      { weekday: "short", day: "numeric", month: "short" });
+    top.appendChild(el("span", "week-day-date", when));
+    row.appendChild(top);
+    row.appendChild(hebrewSpan("div", "week-day-ref", weekReference(part)));
+    var checks = el("div", "week-day-checks");
+    WEEK_CHECKS.forEach(function (key, index) {
+      var label = el("label");
+      var box = el("input");
+      box.type = "checkbox";
+      box.checked = ticks[index];
+      box.addEventListener("change", function () { setWeekCheck(part.day, index, box.checked); });
+      label.appendChild(box);
+      label.appendChild(el("span", null, t(locale, key)));
+      checks.appendChild(label);
+    });
+    checks.appendChild(weekReadLink(part));
+    row.appendChild(checks);
+    return row;
+  }
+
+  function renderWeek() {
+    if (!weekData) return;
+    var progress = readWeekProgress();
+    var today = isoDate(new Date());
+    weekTitleEl.textContent = weekData.portions.map(function (portion) {
+      return locale === "he" ? portion.he : portion.en;
+    }).join(" · ");
+    weekDaysEl.textContent = "";
+    var completeDays = 0;
+    weekData.days.forEach(function (part) {
+      var ticks = progress[weekData.weekStart + "|" + part.day] || [false, false, false];
+      if (ticks.every(Boolean)) completeDays += 1;
+      weekDaysEl.appendChild(weekDayRow(part, ticks, today));
+    });
+    weekProgressEl.textContent = t(locale, "week.progress", { done: completeDays });
+  }
+
+  function showWeek() {
+    var request = ++weekRequest;
+    weekData = null;
+    weekDaysEl.textContent = "";
+    ensureReaderBooks()
+      .catch(function () { /* book names stay in Hebrew */ })
+      .then(function () {
+        return apiFetch("/api/parasha?day=" + isoDate(weekDate));
+      })
+      .then(function (response) {
+        if (!response.ok) throw new Error("parasha " + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        if (request !== weekRequest) return;
+        weekData = data;
+        renderWeek();
+      })
+      .catch(function () {
+        if (request !== weekRequest) return;
+        weekTitleEl.textContent = "";
+        weekProgressEl.textContent = "";
+        weekDaysEl.appendChild(notice(t(locale, "error.title"), t(locale, "week.error"), "error"));
+      });
+  }
+
+  function openWeek(pushHash) {
+    showView("week");
+    if (pushHash && location.hash !== "#/week") history.pushState(null, "", "#/week");
+    showWeek();
+  }
+
+  function shiftWeek(days) {
+    weekDate = new Date(weekDate.getFullYear(), weekDate.getMonth(), weekDate.getDate() + days);
+    showWeek();
+  }
+
+  document.getElementById("week-prev").addEventListener("click", function () { shiftWeek(-7); });
+  document.getElementById("week-next").addEventListener("click", function () { shiftWeek(7); });
+  document.getElementById("week-today").addEventListener("click", function () {
+    weekDate = new Date();
+    showWeek();
+  });
+
   // Applies a mode and query that came from the URL rather than from a click.
   function runFromHash(state) {
     mode = state.mode;
@@ -2101,6 +2255,10 @@
     var position = readerPositionFromHash();
     if (position) {
       openReader(position, false);
+      return;
+    }
+    if (location.hash === "#/week") {
+      openWeek(false);
       return;
     }
     showView("search");
@@ -2130,5 +2288,6 @@
   var initialPosition = readerPositionFromHash();
   var initial = fromHash();
   if (initialPosition) openReader(initialPosition, false);
+  else if (location.hash === "#/week") openWeek(false);
   else if (initial) runFromHash(initial);
 })();

@@ -45,6 +45,7 @@ flowchart TD
     Search["app/search.py<br/>matching + response shaping"]
     Phrase["app/phrase.py<br/>free-text word / phrase search"]
     Reader["app/reader.py<br/>one chapter and its neighbours"]
+    Parasha["app/parasha.py<br/>the weekly portion in seven days"]
     Corpus["app/corpus.py<br/>Verse model + indexes"]
     Hebrew["app/hebrew.py<br/>normalization primitives"]
     Data[("data/tanakh.json.gz<br/>23,206 verses + Rashi, 3.2MB")]
@@ -57,9 +58,12 @@ flowchart TD
     Main --> Search
     Main --> Phrase
     Main -->|"GET /api/chapter, /api/books"| Reader
+    Main -->|"GET /api/parasha"| Parasha
     Reader -->|"Payload type"| Search
     Reader --> Corpus
     Reader --> Hebrew
+    Parasha --> Corpus
+    Parasha --> Hebrew
     Phrase -->|"serialize(), highlight shapes"| Search
     Phrase --> Corpus
     Phrase --> Hebrew

@@ -38,6 +38,7 @@
       <div class="view-tabs" id="view-tabs" role="group" data-i18n-aria-label="view.ariaLabel" aria-label="תצוגה">
         <button type="button" class="view-tab active" data-view="search" aria-pressed="true" data-i18n="view.search">חיפוש</button>
         <button type="button" class="view-tab" data-view="read" aria-pressed="false" data-i18n="view.read">לימוד</button>
+        <button type="button" class="view-tab" data-view="week" aria-pressed="false" data-i18n="view.week">פרשה</button>
       </div>
     </div>
   </header>
@@ -113,6 +114,17 @@
     </div>
 
     <section id="results" class="results" aria-live="polite" aria-busy="false"></section>
+
+    <section class="week" id="week" hidden>
+      <div class="week-head">
+        <button type="button" class="copy" id="week-prev" data-i18n="week.prev">השבוע הקודם</button>
+        <button type="button" class="copy" id="week-today" data-i18n="week.today">השבוע</button>
+        <button type="button" class="copy" id="week-next" data-i18n="week.next">השבוע הבא</button>
+      </div>
+      <h2 class="week-title" id="week-title" lang="he" dir="auto" aria-live="polite"></h2>
+      <p class="week-progress" id="week-progress"></p>
+      <ol class="week-days" id="week-days"></ol>
+    </section>
 
     <section class="reader" id="reader" hidden>
       <div class="reader-controls">

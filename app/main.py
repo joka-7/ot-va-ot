@@ -16,7 +16,9 @@ import os
 import random
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from datetime import date
 from pathlib import Path
+from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .commentary import CommentaryError, CommentaryStores
 from .corpus import load_corpus
+from .parasha import ParashaError, week_plan
 from .phrase import InvalidPhrase, PhraseQuery, search_phrase
 from .reader import ReaderError, chapter_page, list_books
 from .search import (
@@ -230,6 +233,23 @@ def chapter_endpoint(
             status_code=404, detail=error(exc.code, READER_ERRORS[exc.code])
         ) from None
     return page.as_dict()
+
+
+PARASHA_ERRORS = {"no_portion": "לא נמצאה פרשה לשבוע זה"}
+
+
+@app.get("/api/parasha")
+def parasha_endpoint(
+    day: Annotated[date, Query(description="A date in the week, YYYY-MM-DD, in the reader's zone")],
+    israel: Annotated[bool, Query(description="Follow the Israeli reading schedule")] = True,
+) -> Payload:
+    """The week's portion cut into seven days, Saturday (ראשון) to Friday (שביעי)."""
+    try:
+        return week_plan(load_corpus(), day, israel).as_dict()
+    except ParashaError as exc:
+        raise HTTPException(
+            status_code=404, detail=error(exc.code, PARASHA_ERRORS[exc.code])
+        ) from None
 
 
 @app.get("/api/commentary")
