@@ -382,7 +382,7 @@ them (the Targumim, being translations, 2 to 4%), and in only a neighbouring ver
 at most 0.3%, which a one-verse shift would raise sharply. Rebuild one with
 `python -m scripts.build_commentaries --commentary onkelos` (or any other id).
 
-### Saving, recent chapters and download
+### Saving, recent chapters, saved searches and download
 
 The Read tab has a **"שמירה"** button, a **"הורדה"** button and a **"שמורים"** list
 (`reader-tools` in `static/index.html`, the "Saved chapters" part of `static/app.js`).
@@ -400,7 +400,13 @@ The Read tab has a **"שמירה"** button, a **"הורדה"** button and a **"�
   not available the three controls are hidden.
 
 Checked by driving a browser (save, list, download, then the connection cut and a saved
-chapter opened); the front end has no unit tests. Search results are not saved yet.
+chapter opened); the front end has no unit tests.
+
+The **Search** tab has the same three controls above the results (`search-tools`). A search
+(a name or a text search, with its any-order setting) is kept as the response it got, so it
+shows again with no connection, and the mode switches to the one it was made in; recent
+searches are kept as well (the last 20 searches and the last 20 chapters are counted apart),
+and the file is `search_<date><time>.html`. The two tabs have separate lists.
 
 ## Tests
 

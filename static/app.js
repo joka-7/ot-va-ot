@@ -62,6 +62,10 @@
   // round-trip when it changes: the last successful search response.
   var locale = loadLocale();
   var lastSearchData = null;
+  var searchShowingSaved = false; // the results on screen are a copy kept on the device
+  var lastSearchQuery = ""; // the query that produced lastSearchData, which the box may no longer show
+  var lastSearchMode = "name"; // and the mode and word order it was made in
+  var lastSearchAnyOrder = false;
 
   // What the search box means right now: "name" (letters of a name, the app's
   // original purpose) or "text" (a word or phrase anywhere in the Tanakh).
@@ -553,6 +557,11 @@
   }
 
   function render(data) {
+    renderResults(data);
+    if (searchShowingSaved) results.insertBefore(el("p", "attribution", t(locale, "reader.savedCopy")), results.firstChild);
+  }
+
+  function renderResults(data) {
     if (data.exact) {
       renderPhrase(data);
       return;
@@ -698,6 +707,7 @@
     if (readerBooks) populateReaderBooks();
     syncReaderCommentaries();
     if (readerBooks) syncReaderTools();
+    if (searchToolsReady) syncSearchTools();
     if (readerData) renderReaderChapter(readerData);
 
     document.getElementById("footer-attribution").innerHTML = t(locale, "footer.attributionHtml");
@@ -809,6 +819,8 @@
     }
     input.value = "";
     lastSearchData = null;
+    searchShowingSaved = false;
+    syncSearchSaveButton();
     results.innerHTML = "";
     results.setAttribute("aria-busy", "false");
     submit.disabled = false;
@@ -872,6 +884,7 @@
     if (inFlight) inFlight.abort();
     var controller = new AbortController();
     inFlight = controller;
+    searchShowingSaved = false;
 
     submit.disabled = true;
     results.setAttribute("aria-busy", "true");
@@ -894,12 +907,18 @@
       })
       .then(function (data) {
         lastSearchData = data;
+        lastSearchQuery = query;
+        lastSearchMode = mode;
+        lastSearchAnyOrder = anyOrder;
         render(data);
+        rememberRecentSearch();
+        syncSearchSaveButton();
         results.scrollIntoView({ behavior: "smooth", block: "start" });
       })
       .catch(function (error) {
         if (error.name === "AbortError") return; // superseded by a newer search
         lastSearchData = null;
+        syncSearchSaveButton();
         results.innerHTML = "";
         results.appendChild(notice(t(locale, "error.title"), error.message, "error"));
       })
@@ -1247,6 +1266,7 @@
     var loaded = loadedCommentariesFor(data);
     return {
       id: savedKey(data),
+      kind: "chapter",
       kept: kept,
       title: data.ref,
       savedAt: Date.now(),
@@ -1265,14 +1285,17 @@
     return merged;
   }
 
-  // Forget the oldest of the merely recent items past RECENT_LIMIT.
+  // Forget the oldest of the merely recent chapters, and of the merely recent searches, past
+  // RECENT_LIMIT of each.
   function pruneRecent() {
     return savedRequest("readwrite", function (store) {
       var all = store.getAll();
       all.onsuccess = function () {
-        var recent = all.result.filter(function (item) { return !item.kept; });
-        recent.sort(function (a, b) { return b.savedAt - a.savedAt; });
-        recent.slice(RECENT_LIMIT).forEach(function (old) { store.delete(old.id); });
+        ["chapter", "search"].forEach(function (kind) {
+          var recent = all.result.filter(function (item) { return !item.kept && (item.kind || "chapter") === kind; });
+          recent.sort(function (a, b) { return b.savedAt - a.savedAt; });
+          recent.slice(RECENT_LIMIT).forEach(function (old) { store.delete(old.id); });
+        });
       };
       return all;
     });
@@ -1354,36 +1377,46 @@
     readerEl.scrollIntoView({ block: "start" });
   }
 
+  // The saved items of one kind, "Saved" then "Recently read", into a panel.
+  function fillSavedPanel(panel, items, kind, open, refresh) {
+    panel.textContent = "";
+    var groups = [
+      ["reader.savedHeading", true],
+      [kind === "search" ? "reader.recentSearchesHeading" : "reader.recentHeading", false],
+    ];
+    var any = false;
+    groups.forEach(function (group) {
+      var chosen = items.filter(function (item) {
+        return (item.kind || "chapter") === kind && item.kept === group[1];
+      });
+      chosen.sort(function (a, b) { return b.savedAt - a.savedAt; });
+      if (!chosen.length) return;
+      any = true;
+      panel.appendChild(el("p", "reader-saved-heading", t(locale, group[0])));
+      chosen.forEach(function (item) {
+        var row = el("div", "reader-saved-row");
+        var opener = hebrewSpan("button", "reader-saved-open", item.title);
+        opener.type = "button";
+        opener.addEventListener("click", function () { open(item); });
+        var remove = el("button", "reader-saved-remove", "✕");
+        remove.type = "button";
+        remove.setAttribute("aria-label", t(locale, "reader.delete"));
+        remove.addEventListener("click", function () {
+          savedDelete(item.id).then(refresh).catch(function () {
+            remove.textContent = "!"; // the row is still there: the delete did not happen
+          });
+        });
+        row.appendChild(opener);
+        row.appendChild(remove);
+        panel.appendChild(row);
+      });
+    });
+    if (!any) panel.appendChild(el("p", "reader-saved-heading", t(locale, "reader.savedEmpty")));
+  }
+
   function renderSavedList() {
     savedAll().then(function (items) {
-      readerSavedPanel.textContent = "";
-      var groups = [["reader.savedHeading", true], ["reader.recentHeading", false]];
-      var any = false;
-      groups.forEach(function (group) {
-        var chosen = items.filter(function (item) { return item.kept === group[1]; });
-        chosen.sort(function (a, b) { return b.savedAt - a.savedAt; });
-        if (!chosen.length) return;
-        any = true;
-        readerSavedPanel.appendChild(el("p", "reader-saved-heading", t(locale, group[0])));
-        chosen.forEach(function (item) {
-          var row = el("div", "reader-saved-row");
-          var open = hebrewSpan("button", "reader-saved-open", item.title);
-          open.type = "button";
-          open.addEventListener("click", function () { openSaved(item); });
-          var remove = el("button", "reader-saved-remove", "✕");
-          remove.type = "button";
-          remove.setAttribute("aria-label", t(locale, "reader.delete"));
-          remove.addEventListener("click", function () {
-            savedDelete(item.id).then(function () { renderSavedList(); syncSaveButton(); }).catch(function () {
-              remove.textContent = "!"; // the row is still there: the delete did not happen
-            });
-          });
-          row.appendChild(open);
-          row.appendChild(remove);
-          readerSavedPanel.appendChild(row);
-        });
-      });
-      if (!any) readerSavedPanel.appendChild(el("p", "reader-saved-heading", t(locale, "reader.savedEmpty")));
+      fillSavedPanel(readerSavedPanel, items, "chapter", openSaved, function () { renderSavedList(); syncSaveButton(); });
     }).catch(function () {});
   }
 
@@ -1407,9 +1440,14 @@
   // all open) in one self-contained .html file, styled with the app's own stylesheet.
   function downloadReaderPage() {
     if (!readerData) return;
-    var title = readerData.ref;
     // An English name: a Hebrew file name is lost in some browsers' downloads.
     var fileName = readerData.book.en.replace(/[^A-Za-z0-9]+/g, "_") + "_" + readerData.chapter + ".html";
+    downloadPage(readerPageEl, readerData.ref, fileName, readerDownloadBtn);
+  }
+
+  // `source`'s content as a file, with its title; `button` shows if that fails.
+  // With `plain`, the buttons and boxes in it are dropped: they do nothing in a file.
+  function downloadPage(source, title, fileName, button, plain) {
     fetch("styles.css").then(function (response) {
       if (!response.ok) throw new Error("css " + response.status);
       return response.text();
@@ -1419,16 +1457,162 @@
       doc.documentElement.dir = "rtl";
       doc.head.appendChild(doc.createElement("meta")).setAttribute("charset", "utf-8");
       doc.head.appendChild(doc.createElement("style")).textContent = css;
-      var page = readerPageEl.cloneNode(true);
+      var page = source.cloneNode(true);
       page.removeAttribute("id");
+      page.hidden = false;
+      if (plain) page.querySelectorAll("button, input").forEach(function (control) { control.remove(); });
       page.querySelectorAll("details").forEach(function (details) { details.setAttribute("open", ""); });
       doc.body.appendChild(page);
       downloadFile(fileName, "<!doctype html>\n" + doc.documentElement.outerHTML);
     }).catch(function () {
-      readerDownloadBtn.textContent = t(locale, "reader.downloadFailed");
-      setTimeout(function () { readerDownloadBtn.textContent = t(locale, "reader.download"); }, 3000);
+      button.textContent = t(locale, "reader.downloadFailed");
+      setTimeout(function () { button.textContent = t(locale, "reader.download"); }, 3000);
     });
   }
+
+  // --- Saved searches ----------------------------------------------------
+  //
+  // The same for the Search tab: the results on screen can be saved, are remembered as recent,
+  // and download as a file. A search is kept as the response it got, so it shows again with no
+  // connection.
+
+  var savingSearch = false; // a save or un-save of the results is in progress
+  var searchToolsEl = document.getElementById("search-tools");
+  var searchSaveBtn = document.getElementById("search-save");
+  var searchDownloadBtn = document.getElementById("search-download");
+  var searchSavedEl = document.getElementById("search-saved");
+  var searchSavedPanel = document.getElementById("search-saved-panel");
+  var searchToolsReady = false;
+
+  function searchItem(kept) {
+    var query = lastSearchQuery;
+    return {
+      id: "search|" + lastSearchMode + "|" + (lastSearchAnyOrder ? 1 : 0) + "|" + query,
+      kind: "search",
+      kept: kept,
+      title: query,
+      savedAt: Date.now(),
+      query: query,
+      mode: lastSearchMode,
+      anyOrder: lastSearchAnyOrder,
+      data: lastSearchData,
+    };
+  }
+
+  // Remember the results just shown, as a recent search; a saved one keeps its saved state and
+  // date.
+  function rememberRecentSearch() {
+    if (!lastSearchData) return;
+    var fresh = searchItem(false);
+    savedRequest("readwrite", function (store) {
+      var read = store.get(fresh.id);
+      read.onsuccess = function () {
+        if (read.result) {
+          fresh.kept = read.result.kept;
+          if (read.result.kept) fresh.savedAt = read.result.savedAt;
+        }
+        store.put(fresh);
+      };
+      return read;
+    }).then(pruneRecent).then(renderSearchSavedList).catch(function () { /* nothing is remembered */ });
+  }
+
+  function renderSearchSavedList() {
+    savedAll().then(function (items) {
+      fillSavedPanel(searchSavedPanel, items, "search", openSavedSearch, function () {
+        renderSearchSavedList();
+        syncSearchSaveButton();
+      });
+    }).catch(function () {});
+  }
+
+  function syncSearchSaveButton() {
+    if (!searchToolsReady) return;
+    searchSaveBtn.disabled = !lastSearchData;
+    searchDownloadBtn.disabled = !lastSearchData;
+    if (!lastSearchData) {
+      searchSaveBtn.setAttribute("aria-pressed", "false");
+      searchSaveBtn.textContent = t(locale, "reader.save");
+      return;
+    }
+    var id = searchItem(false).id;
+    savedAll().then(function (items) {
+      var saved = items.some(function (item) { return item.id === id && item.kept; });
+      searchSaveBtn.setAttribute("aria-pressed", saved ? "true" : "false");
+      searchSaveBtn.textContent = t(locale, saved ? "reader.saved" : "reader.save");
+    }).catch(function () {});
+  }
+
+  // Save, or un-save, the results on screen. Whether it is saved already is read in the same
+  // transaction as the write, not taken from the button, which may not have caught up.
+  function toggleSavedSearch() {
+    if (!lastSearchData || inFlight || savingSearch) return;
+    savingSearch = true;
+    var fresh = searchItem(true);
+    savedRequest("readwrite", function (store) {
+      var read = store.get(fresh.id);
+      read.onsuccess = function () {
+        var wasSaved = Boolean(read.result && read.result.kept);
+        fresh.kept = !wasSaved;
+        store.put(fresh);
+      };
+      return read;
+    }).then(pruneRecent).then(function () {
+      syncSearchSaveButton();
+      renderSearchSavedList();
+    }).catch(function () {
+      searchSaveBtn.textContent = t(locale, "reader.saveFailed");
+    }).then(function () { savingSearch = false; });
+  }
+
+  // Show kept results from the device, whether or not there is a connection.
+  function openSavedSearch(item) {
+    if (inFlight) inFlight.abort();
+    showView("search");
+    mode = item.mode;
+    anyOrder = item.anyOrder;
+    anyOrderBox.checked = anyOrder;
+    applyStaticTranslations();
+    input.value = item.query;
+    lastSearchData = item.data;
+    lastSearchQuery = item.query;
+    lastSearchMode = item.mode;
+    lastSearchAnyOrder = item.anyOrder;
+    searchShowingSaved = true;
+    // No "#q=": back, forward or a reload would run that search live and replace the saved copy.
+    searchHash = "";
+    history.pushState(null, "", location.pathname + location.search);
+    render(item.data);
+    results.setAttribute("aria-busy", "false");
+    searchSavedEl.open = false;
+    syncSearchSaveButton();
+    syncClearButton();
+    results.scrollIntoView({ block: "start" });
+  }
+
+  function downloadSearch() {
+    if (!lastSearchData || inFlight) return;
+    var now = new Date();
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    var stamp = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "_" + pad(now.getHours()) + pad(now.getMinutes());
+    downloadPage(results, lastSearchQuery, "search_" + stamp + ".html", searchDownloadBtn, true);
+  }
+
+  function syncSearchTools() {
+    savedDb().then(function () {
+      searchToolsReady = true;
+      searchToolsEl.hidden = false;
+      renderSearchSavedList();
+      syncSearchSaveButton();
+    }).catch(function () { searchToolsEl.hidden = true; });
+  }
+
+  searchSaveBtn.addEventListener("click", toggleSavedSearch);
+  searchDownloadBtn.addEventListener("click", downloadSearch);
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest("#search-saved")) searchSavedEl.open = false;
+  });
+  syncSearchTools();
 
   function syncReaderTools() {
     savedDb().then(function () {
