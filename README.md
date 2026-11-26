@@ -384,8 +384,12 @@ at most 0.3%, which a one-verse shift would raise sharply. Rebuild one with
 
 ### Saving, recent chapters, saved searches and download
 
-The Read tab has a **"שמירה"** button, a **"הורדה"** button and a **"שמורים"** list
-(`reader-tools` in `static/index.html`, the "Saved chapters" part of `static/app.js`).
+The Read tab's card has three icon buttons in its header, beside the chapter's title
+(`reader-head` in `static/index.html`, the "Saved chapters" part of `static/app.js`): a
+**bookmark** to save it (it fills when saved), a **download** arrow, and a **list** of saved
+items with a count of the ones saved. The buttons have no text, so each carries an
+`aria-label` and a tooltip in the page's language; a failed save or download turns its
+button red for a few seconds.
 
 - **Save** keeps the chapter on screen in this browser's IndexedDB (database
   `pasuk-leshem`, store `saved`), with the commentaries loaded for it. Nothing is sent
@@ -402,7 +406,8 @@ The Read tab has a **"שמירה"** button, a **"הורדה"** button and a **"�
 Checked by driving a browser (save, list, download, then the connection cut and a saved
 chapter opened); the front end has no unit tests.
 
-The **Search** tab has the same three controls above the results (`search-tools`). A search
+The **Search** tab has the same three icons above the results, beside the query
+(`search-head`). A search
 (a name or a text search, with its any-order setting) is kept as the response it got, so it
 shows again with no connection, and the mode switches to the one it was made in; recent
 searches are kept as well (the last 20 searches and the last 20 chapters are counted apart),

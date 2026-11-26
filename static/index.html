@@ -93,19 +93,23 @@
         <button class="chip" type="button" dir="rtl" data-q="על פני">על פני</button>
         <button class="chip" type="button" dir="rtl" data-q="יְהִי אוֹר">יְהִי אוֹר</button>
       </div>
-      <div class="reader-tools search-tools" id="search-tools" hidden>
-        <button type="button" class="copy" id="search-save" aria-pressed="false" data-i18n="reader.save">שמירה</button>
-        <button type="button" class="copy" id="search-download" data-i18n="reader.download">הורדה</button>
-        <details class="reader-commentaries reader-saved" id="search-saved">
-          <summary data-i18n="reader.savedList">שמורים</summary>
-          <div class="reader-commentaries-panel reader-saved-panel" id="search-saved-panel"></div>
-        </details>
-      </div>
     </form>
 
     <div class="waking" id="waking" role="status" aria-live="polite" hidden>
       <span class="waking-dot" aria-hidden="true"></span>
       <span data-i18n="waking.message">מעיר את השרת… בפעם הראשונה אחרי זמן מנוחה זה עלול לקחת כדקה.</span>
+    </div>
+
+    <div class="search-head" id="search-head">
+      <h2 class="search-title" id="search-title" dir="auto"></h2>
+      <div class="reader-icons" id="search-tools" hidden>
+        <button type="button" class="ibtn" id="search-save" aria-pressed="false" data-i18n-aria-label="reader.save"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
+        <button type="button" class="ibtn" id="search-download" data-i18n-aria-label="reader.download"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg></button>
+        <details class="reader-saved" id="search-saved">
+          <summary class="ibtn" data-i18n-aria-label="reader.savedList"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span class="badge" hidden></span></summary>
+          <div class="reader-commentaries-panel reader-saved-panel" id="search-saved-panel"></div>
+        </details>
+      </div>
     </div>
 
     <section id="results" class="results" aria-live="polite" aria-busy="false"></section>
@@ -117,14 +121,6 @@
           <select class="select reader-chapter" id="reader-chapter" data-i18n-aria-label="reader.chapter" aria-label="פרק"></select>
         </div>
       </div>
-      <div class="reader-tools" id="reader-tools" hidden>
-        <button type="button" class="copy" id="reader-save" aria-pressed="false" data-i18n="reader.save">שמירה</button>
-        <button type="button" class="copy" id="reader-download" data-i18n="reader.download">הורדה</button>
-        <details class="reader-commentaries reader-saved" id="reader-saved">
-          <summary data-i18n="reader.savedList">שמורים</summary>
-          <div class="reader-commentaries-panel reader-saved-panel" id="reader-saved-panel"></div>
-        </details>
-      </div>
       <div class="reader-nav">
         <button type="button" class="copy reader-prev" data-i18n="reader.previous">הפרק הקודם</button>
         <details class="reader-commentaries" id="reader-commentaries">
@@ -133,7 +129,20 @@
         </details>
         <button type="button" class="copy reader-next" data-i18n="reader.next">הפרק הבא</button>
       </div>
-      <article class="reader-page" id="reader-page" aria-live="polite" aria-busy="false"></article>
+      <div class="reader-card">
+        <header class="reader-head">
+          <h2 class="reader-citation" id="reader-citation" lang="he" dir="rtl" aria-live="polite"></h2>
+          <div class="reader-icons" id="reader-tools" hidden>
+            <button type="button" class="ibtn" id="reader-save" aria-pressed="false" data-i18n-aria-label="reader.save"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
+            <button type="button" class="ibtn" id="reader-download" data-i18n-aria-label="reader.download"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16"/></svg></button>
+            <details class="reader-saved" id="reader-saved">
+              <summary class="ibtn" data-i18n-aria-label="reader.savedList"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h9"/></svg><span class="badge" hidden></span></summary>
+              <div class="reader-commentaries-panel reader-saved-panel" id="reader-saved-panel"></div>
+            </details>
+          </div>
+        </header>
+        <article class="reader-page" id="reader-page" aria-live="polite" aria-busy="false"></article>
+      </div>
       <div class="reader-nav">
         <button type="button" class="copy reader-prev" data-i18n="reader.previous">הפרק הקודם</button>
         <button type="button" class="copy reader-next" data-i18n="reader.next">הפרק הבא</button>
