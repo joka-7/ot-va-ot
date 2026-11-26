@@ -951,10 +951,55 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 }
 .reader-commentary-option input { width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--accent); }
 .reader-commentary-option:has(input:disabled) { opacity: .5; cursor: default; }
-.reader-tools:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 .6rem; }
-.reader-tools .copy { min-height: 44px; padding: .3rem .8rem; font-size: .9rem; }
-.reader-tools .copy[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
-.search-tools { margin-top: .6rem; }
+.reader-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+.search-head:not([hidden]) { display: flex; align-items: center; gap: .5rem; margin: .6rem 0; }
+.search-title { margin: 0; flex: 1 1 auto; min-width: 0; font-size: 1.05rem; color: var(--accent-text); overflow-wrap: anywhere; }
+.reader-icons:not([hidden]) { display: flex; gap: .35rem; flex: 0 0 auto; margin-inline-start: auto; }
+/* An icon button: the bookmark fills when the page is saved, the list carries a count. */
+.ibtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-soft);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  list-style: none;
+}
+.ibtn::-webkit-details-marker { display: none; }
+.ibtn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ibtn:hover:not(:disabled) { background: var(--surface-2); }
+.ibtn:disabled { opacity: .4; cursor: default; }
+.ibtn:focus-visible { outline: 2.5px solid var(--accent); outline-offset: 2px; }
+.ibtn[aria-pressed="true"], .reader-saved[open] > .ibtn { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.ibtn[aria-pressed="true"] svg { fill: currentColor; }
+.ibtn.failed { color: #b3412b; border-color: #b3412b; }
+@media (prefers-color-scheme: dark) { .ibtn.failed { color: #f0a08a; border-color: #f0a08a; } }
+.ibtn .badge {
+  position: absolute;
+  top: -6px;
+  inset-inline-end: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 .7rem var(--font);
+  color: var(--surface);
+  background: var(--accent);
+  border-radius: 9px;
+}
+.ibtn .badge[hidden] { display: none; }
+.reader-saved { position: relative; }
+/* The list opens under its icon, flush with the card's edge, not centred as the commentaries are. */
+.reader-saved .reader-commentaries-panel,
+:root[dir="rtl"] .reader-saved .reader-commentaries-panel { inset-inline-start: auto; inset-inline-end: 0; transform: none; }
 .reader-saved-heading { margin: .4rem .6rem .1rem; font-size: .8rem; font-weight: 700; color: var(--text-faint); }
 .reader-saved-row { display: flex; align-items: center; gap: .25rem; }
 .reader-saved-open {
@@ -978,14 +1023,14 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   cursor: pointer;
 }
 .reader-saved-panel { min-width: 14rem; max-height: 60vh; overflow-y: auto; }
-.reader-page {
+.reader-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 1rem;
 }
-.reader-citation { margin: 0 0 .75rem; font-size: 1.1rem; color: var(--accent-text); }
+.reader-citation { margin: 0; flex: 1 1 auto; min-width: 0; font-size: 1.1rem; color: var(--accent-text); }
 .reader-verse { display: flex; gap: .6rem; align-items: baseline; padding: .15rem .3rem; border-radius: var(--radius-sm); }
 .reader-verse-num { flex: 0 0 1.9rem; font-size: .8rem; font-weight: 700; color: var(--accent-text); text-align: center; }
 .reader-verse-body { flex: 1 1 auto; min-width: 0; }
