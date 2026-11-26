@@ -1325,7 +1325,45 @@
     }).then(pruneRecent).then(renderSavedList).catch(function () { /* nothing is remembered; reading is unaffected */ });
   }
 
+  // --- Progress: pages marked as finished ------------------------------------
+  // Kept apart from the saved pages: a plain map of key -> ISO date in localStorage, so
+  // marking a page done never touches what is saved or recently read.
+  var DONE_STORAGE_KEY = "pasuk-leshem:done";
+  var readerDoneBtn = document.getElementById("reader-done");
+
+  function readDone() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(DONE_STORAGE_KEY));
+      return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+    } catch (err) {
+      return {}; // private browsing, or a value that is not JSON: nothing is marked
+    }
+  }
+
+  function syncDoneButton() {
+    readerDoneBtn.disabled = !readerData;
+    var done = !!readerData && !!readDone()[savedKey(readerData)];
+    readerDoneBtn.setAttribute("aria-pressed", done ? "true" : "false");
+    readerDoneBtn.setAttribute("aria-label", t(locale, "reader.done"));
+    readerDoneBtn.title = t(locale, done ? "reader.doneMarked" : "reader.done");
+  }
+
+  function toggleDone() {
+    if (!readerData) return;
+    var key = savedKey(readerData);
+    var done = readDone();
+    if (done[key]) delete done[key]; else done[key] = new Date().toISOString();
+    try {
+      localStorage.setItem(DONE_STORAGE_KEY, JSON.stringify(done));
+    } catch (err) {
+      flashFailed(readerDoneBtn, "reader.saveFailed", syncDoneButton);
+      return;
+    }
+    syncDoneButton();
+  }
+
   function syncSaveButton() {
+    syncDoneButton();
     readerSaveBtn.disabled = !readerData;
     readerDownloadBtn.disabled = !readerData;
     if (!readerData) {
@@ -2021,6 +2059,7 @@
   });
 
   readerSaveBtn.addEventListener("click", toggleSaved);
+  readerDoneBtn.addEventListener("click", toggleDone);
   readerDownloadBtn.addEventListener("click", downloadReaderPage);
   document.addEventListener("click", function (event) {
     if (!event.target.closest("#reader-saved")) readerSavedEl.open = false;
