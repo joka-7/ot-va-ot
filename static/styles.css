@@ -1036,3 +1036,22 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .reader-verse-body { flex: 1 1 auto; min-width: 0; }
 .reader-verse .verse { cursor: auto; } /* only a search result's verse can be tapped to search a word */
 .reader-verse-target { background: var(--accent-soft); }
+
+/* --- Weekly parasha ------------------------------------------------------- */
+.week-head { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.week-title { margin: .25rem 0; font-family: var(--font-verse); font-size: 1.6rem; }
+.week-progress { margin: 0 0 .75rem; color: var(--text-soft); font-size: .9rem; }
+.week-days { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.week-day {
+  display: grid; gap: .35rem; padding: .7rem .9rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.week-day.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.week-day.complete { background: var(--accent-soft); }
+.week-day-top { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.week-day-name { font-weight: 700; }
+.week-day-date { color: var(--text-faint); font-size: .85rem; }
+.week-day-ref { font-family: var(--font-verse); font-size: 1.1rem; }
+.week-day-checks { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.week-day-checks label { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; }
+.week-day-checks input { width: 1.15rem; height: 1.15rem; accent-color: var(--accent); }
