@@ -276,7 +276,8 @@ and stop only at the start and end of the Tanakh. The text is the same niqqud an
 cantillation as in search results. Each verse Rashi wrote on has a "פירוש רש״י"
 button that opens his comment, and the "רש״י" checkbox shows or hides those
 buttons. The chapter is in the URL hash (`#/read/<book>/<chapter>`, plus
-`/<verse>` to land on a verse), so it can be linked to and the back button steps
+`/<verse>` to land on a verse, then `-<chapter>:<verse>` to highlight every verse up
+to that one, as the parasha tab's "Read" link does), so it can be linked to and the back button steps
 between chapters; the last chapter read is kept in `localStorage`, and the Read
 tab reopens it. Every search result has an "Open in reader" link that opens its
 chapter at that verse. The text comes from `GET /api/chapter` (`app/reader.py`);
