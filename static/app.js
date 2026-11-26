@@ -1674,6 +1674,9 @@
     if (!event.target.closest("#search-saved")) searchSavedEl.open = false;
   });
   syncSearchTools();
+  // The reader's tools too, now: they need the device, not the server, and the server may
+  // take a minute to wake.
+  syncReaderTools();
 
   function syncReaderTools() {
     savedDb().then(function () {
@@ -1968,6 +1971,7 @@
   // first chapter of the first book.
   function openReader(position, pushHash) {
     showView("read");
+    syncReaderTools();
     ensureReaderBooks()
       .then(function () {
         var start = position || readerPosition || loadReaderPosition() || { book: readerBooks[0].he, chapter: 1 };
@@ -1975,6 +1979,8 @@
         syncReaderCommentaries();
         syncReaderTools();
         populateReaderBooks();
+        // A saved chapter opened while the server was waking stays: do not replace it now.
+        if (readerShowingSaved) return;
         showReaderChapter(start, pushHash);
       })
       .catch(function () {
