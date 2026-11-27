@@ -1143,7 +1143,8 @@
 
   // GET /api/books, loaded the first time the reader opens.
   var readerBooks = null;
-  var readerPosition = null; // {book, chapter, verse?} being shown
+  var readerPosition = null; // {book, chapter, verse?, to?} being shown
+  var readerRange = null; // {book, from, to} verses to highlight, across the chapters it spans
   var readerGood = null; // the last position that loaded, to fall back to when one does not
   var readerData = null; // the last /api/chapter response, kept to redraw on a language switch
   var readerRequest = 0; // a slower, older response never replaces a newer one
@@ -1764,6 +1765,26 @@
     });
   }
 
+  // A long note is shown shortened, with a button for the rest. It can only be measured once
+  // its disclosure is open, so the button is added then.
+  function clampNote(details, content) {
+    content.classList.add("clamped");
+    details.addEventListener("toggle", function () {
+      if (!details.open || details.querySelector(".rashi-more")) return;
+      if (content.scrollHeight <= content.clientHeight + 4) {
+        content.classList.remove("clamped");
+        return;
+      }
+      var more = el("button", "copy rashi-more", t(locale, "reader.showMore"));
+      more.type = "button";
+      more.addEventListener("click", function () {
+        var open = content.classList.toggle("clamped");
+        more.textContent = t(locale, open ? "reader.showMore" : "reader.showLess");
+      });
+      details.appendChild(more);
+    });
+  }
+
   // A commentary's note under a verse, among that verse's other notes in the order the
   // commentaries are listed, whichever answered first. Its text is limited at build time
   // to <b>/<small>/<br> (scripts/build_dataset.py's clean_rashi_comment), as Rashi's is.
@@ -1774,6 +1795,7 @@
     var content = hebrewSpan("div", "rashi-text", null);
     content.innerHTML = text;
     details.appendChild(content);
+    if (commentary.clamp) clampNote(details, content);
     var later = null;
     body.querySelectorAll("details").forEach(function (note) {
       if (!later && Number(note.dataset.order) > order) later = note;
@@ -1807,15 +1829,17 @@
 
   function readerHash(position) {
     return "#/read/" + encodeURIComponent(position.book) + "/" + position.chapter +
-      (position.verse ? "/" + position.verse : "");
+      (position.verse ? "/" + position.verse : "") +
+      (position.verse && position.to ? "-" + position.to.chapter + ":" + position.to.verse : "");
   }
 
   function readerPositionFromHash() {
-    var match = /^#\/read\/([^/]+)\/(\d+)(?:\/(\d+))?$/.exec(location.hash);
+    var match = /^#\/read\/([^/]+)\/(\d+)(?:\/(\d+)(?:-(\d+):(\d+))?)?$/.exec(location.hash);
     if (!match) return null;
     try {
       var position = { book: decodeURIComponent(match[1]), chapter: Number(match[2]) };
       if (match[3]) position.verse = Number(match[3]);
+      if (match[4]) position.to = { chapter: Number(match[4]), verse: Number(match[5]) };
       return position;
     } catch (err) {
       return null; // a malformed %-escape
@@ -1911,7 +1935,8 @@
     });
     showReaderCommentaries(data, bodies);
     // Redrawn for Rashi or a language switch: keep the mark, without scrolling again.
-    if (readerPosition && readerPosition.verse) markReaderTarget(readerPosition.verse);
+    if (readerRange) markReaderRange(data);
+    else if (readerPosition && readerPosition.verse) markReaderTarget(readerPosition.verse);
     syncReaderNav(data);
   }
 
@@ -1920,6 +1945,17 @@
     var row = readerPageEl.querySelector('[data-verse="' + verse + '"]');
     if (row) row.classList.add("reader-verse-target");
     return row;
+  }
+
+  // Mark every verse of the range that falls in this chapter, as a day's part of the parasha.
+  function markReaderRange(data) {
+    if (readerRange.book !== data.book.he) return;
+    var from = readerRange.from.chapter * 1000 + readerRange.from.verse;
+    var to = readerRange.to.chapter * 1000 + readerRange.to.verse;
+    readerPageEl.querySelectorAll("[data-verse]").forEach(function (row) {
+      var here = data.chapter * 1000 + Number(row.dataset.verse);
+      if (here >= from && here <= to) row.classList.add("reader-verse-target");
+    });
   }
 
   // Bring that verse into view.
@@ -1934,6 +1970,9 @@
     var request = ++readerRequest;
     readerShowingSaved = false;
     readerPosition = position;
+    readerRange = position.range || (position.verse && position.to
+      ? { book: position.book, from: { chapter: position.chapter, verse: position.verse }, to: position.to }
+      : null);
     readerData = null;
     syncSaveButton();
     syncReaderPickers();
@@ -2032,7 +2071,7 @@
   }
 
   function goToReaderChapter(ref) {
-    showReaderChapter({ book: ref.book, chapter: ref.chapter }, true);
+    showReaderChapter({ book: ref.book, chapter: ref.chapter, range: readerRange }, true);
   }
 
   viewTabs.addEventListener("click", function (event) {
@@ -2143,7 +2182,12 @@
   }
 
   function weekReadLink(part) {
-    var position = { book: part.book, chapter: part.start.chapter, verse: part.start.verse };
+    var position = {
+      book: part.book,
+      chapter: part.start.chapter,
+      verse: part.start.verse,
+      to: { chapter: part.end.chapter, verse: part.end.verse },
+    };
     var link = el("a", "copy", t(locale, "week.read"));
     link.href = readerHash(position);
     link.addEventListener("click", function (event) {
@@ -2290,4 +2334,6 @@
   if (initialPosition) openReader(initialPosition, false);
   else if (location.hash === "#/week") openWeek(false);
   else if (initial) runFromHash(initial);
+  // No link and no search: open where the visitor left off, or at the first chapter of the Tanakh.
+  else openReader(null, false);
 })();

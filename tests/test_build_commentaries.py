@@ -109,10 +109,12 @@ class TestWriteArchive:
 class TestSpecs:
     def test_every_spec_has_a_commentary_the_app_serves_and_an_archive_under_its_licenses(self):
         from app.commentary import KNOWN_COMMENTARIES
+        from scripts import build_midrashim
 
-        assert set(build.SPECS) == {info.id for info in KNOWN_COMMENTARIES}
+        specs = {**build.SPECS, **build_midrashim.SPECS}
+        assert set(specs) == {info.id for info in KNOWN_COMMENTARIES}
         for info in KNOWN_COMMENTARIES:
             with zipfile.ZipFile(info.data_path) as archive:
                 header = json.loads(archive.read("header.json"))
             licenses = {book["license"] for book in header["books"]}
-            assert licenses <= build.SPECS[info.id].allowed_licenses, info.id
+            assert licenses <= specs[info.id].allowed_licenses, info.id

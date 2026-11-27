@@ -1055,3 +1055,11 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
 .week-day-checks { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
 .week-day-checks label { display: inline-flex; gap: .35rem; align-items: center; cursor: pointer; }
 .week-day-checks input { width: 1.15rem; height: 1.15rem; accent-color: var(--accent); }
+
+/* --- Long notes (midrashim): shortened until "show more" ------------------------- */
+.rashi-text.clamped {
+  max-height: 11em; overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+.rashi-more { margin-top: .4rem; }

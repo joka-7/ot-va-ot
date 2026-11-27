@@ -276,9 +276,11 @@ and stop only at the start and end of the Tanakh. The text is the same niqqud an
 cantillation as in search results. Each verse Rashi wrote on has a "פירוש רש״י"
 button that opens his comment, and the "רש״י" checkbox shows or hides those
 buttons. The chapter is in the URL hash (`#/read/<book>/<chapter>`, plus
-`/<verse>` to land on a verse), so it can be linked to and the back button steps
+`/<verse>` to land on a verse, then `-<chapter>:<verse>` to highlight every verse up
+to that one, as the parasha tab's "Read" link does), so it can be linked to and the back button steps
 between chapters; the last chapter read is kept in `localStorage`, and the Read
-tab reopens it. Every search result has an "Open in reader" link that opens its
+tab reopens it. Opening the site with no link or search lands there too: on the last
+chapter read, or Genesis 1 for a first visit. Every search result has an "Open in reader" link that opens its
 chapter at that verse. The text comes from `GET /api/chapter` (`app/reader.py`);
 the book and chapter pickers are filled from `GET /api/books`, which also carries
 each chapter's Hebrew numeral so the browser does not carry its own gematria.
@@ -353,9 +355,9 @@ the reader taps it open. Absent entirely on a verse Rashi didn't comment on.
 ### More commentaries in the reader
 
 The Read tab's **"פירושים"** dropdown ticks which commentaries to show under each
-verse: Rashi (on by default) and ten more, all served by `app/commentary.py`:
+verse: Rashi (on by default) and thirteen more, all served by `app/commentary.py`:
 Targum Onkelos, Targum Jonathan, Rashbam, Ibn Ezra, Ralbag, Sforno, Da'at Zekenim,
-Metzudat David, Or HaChaim, Kli Yakar and Malbim. Unlike Rashi they are not part of
+Metzudat David, Or HaChaim, Kli Yakar and Malbim, then three midrashim (below). Unlike Rashi they are not part of
 `data/tanakh.json.gz`. Each is a zip, `data/<id>.zip` (0.15 to 2.6 MB), with a member
 per book; the server reads a book when a chapter of it is first asked for and keeps
 the last four of each, and the page fetches the ticked ones from `GET /api/commentary`.
@@ -381,6 +383,18 @@ comments, the opening two words are found in the comment's own verse for 40 to 8
 them (the Targumim, being translations, 2 to 4%), and in only a neighbouring verse for
 at most 0.3%, which a one-verse shift would raise sharply. Rebuild one with
 `python -m scripts.build_commentaries --commentary onkelos` (or any other id).
+
+**Midrashim.** Mekhilta d'Rabbi Yishmael, Midrash Tanchuma (Buber) and Sifrei Devarim sit
+last in the same dropdown. A midrash is not indexed by verse, so each is lined up through
+Sefaria's table of links, which join a passage to the Torah verse it explains
+(`scripts/build_midrashim.py`, which reads the table's 18 files, about 700 MB, once). A
+link over more than 5 verses is skipped; a verse shows at most 6 passages, each cut at
+1,500 characters, headed by the passage's place in Hebrew. In the page a long note is cut
+off with a "show more" button (`clamp` in `GET /api/books`). Mekhilta is CC-BY-NC (the only
+version Sefaria has, credited on the page); the other two are Public Domain or CC0.
+Midrash Rabbah, Sifra and Sifrei Bamidbar are left out because Sefaria's only Hebrew
+version of each is licensed "unknown" or CC-BY-SA. Rebuild with
+`python -m scripts.build_midrashim` (all) or `--midrash mekhilta`.
 
 ### Saving, recent chapters, saved searches and download
 
