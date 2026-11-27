@@ -2334,4 +2334,6 @@
   if (initialPosition) openReader(initialPosition, false);
   else if (location.hash === "#/week") openWeek(false);
   else if (initial) runFromHash(initial);
+  // No link and no search: open where the visitor left off, or at the first chapter of the Tanakh.
+  else openReader(null, false);
 })();
