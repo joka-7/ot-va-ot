@@ -120,8 +120,21 @@ class TestParashaEndpoint:
     def test_json_shape(self):
         body = TestClient(app).get("/api/parasha", params={"day": "2026-11-26"}).json()
         assert body.keys() == {"weekStart", "readOn", "portions", "days"}
-        assert body["days"][0].keys() == {"day", "date", "book", "start", "end", "words"}
+        assert body["days"][0].keys() == {"day", "date", "book", "start", "end", "words", "hebrew"}
         assert body["days"][0]["start"].keys() == {"chapter", "verse", "chapterHe", "verseHe"}
+
+    def test_gives_each_day_its_hebrew_date(self):
+        days = TestClient(app).get("/api/parasha", params={"day": "2026-11-28"}).json()["days"]
+        assert days[0]["date"] == "2026-11-28"  # a Saturday starts its own week
+        assert days[0]["hebrew"] == {
+            "day": 18,
+            "dayHe": "י״ח",
+            "monthHe": "כסלו",
+            "monthEn": "Kislev",
+            "year": 5787,
+            "yearHe": "תשפ״ז",
+        }
+        assert [day["hebrew"]["day"] for day in days] == list(range(18, 25))  # a day apiece
 
     @pytest.mark.parametrize("day", ["", "not-a-date", "2026-13-40"])
     def test_rejects_a_bad_date(self, day):

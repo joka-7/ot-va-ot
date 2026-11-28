@@ -66,6 +66,7 @@ class DayPart:
             "start": _verse_dict(self.start),
             "end": _verse_dict(self.end),
             "words": self.words,
+            "hebrew": _hebrew_date(self.date),
         }
 
 
@@ -86,6 +87,19 @@ class WeekPlan:
             "portions": [{"he": p.he, "en": p.en} for p in self.portions],
             "days": [day.as_dict() for day in self.days],
         }
+
+
+def _hebrew_date(day: date) -> Payload:
+    """The Hebrew date of a day, in the pieces the page puts together in any language."""
+    hebrew = dates.GregorianDate(day.year, day.month, day.day).to_heb()
+    return {
+        "day": hebrew.day,
+        "dayHe": hebrew.hebrew_day(),
+        "monthHe": hebrew.month_name(True),
+        "monthEn": hebrew.month_name(),
+        "year": hebrew.year,
+        "yearHe": hebrew.hebrew_year(),
+    }
 
 
 def _verse_dict(verse: tuple[int, int]) -> Payload:

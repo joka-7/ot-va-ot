@@ -1063,3 +1063,8 @@ mark.match { background: var(--name-bg);  color: var(--name);  font-weight: 700;
   -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
 }
 .rashi-more { margin-top: .4rem; }
+
+/* --- Parasha day: only the day's verses, with the whole chapter a button away ----- */
+.reader-range-note { margin: 0 0 .75rem; color: var(--text-soft); font-size: .9rem; }
+.reader-range-note .copy { margin-inline-start: .4rem; }
+#reader-page:not(.show-whole-chapter) .reader-verse-outside { display: none; }

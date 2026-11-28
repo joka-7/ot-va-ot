@@ -228,7 +228,7 @@ rather than a stricter per-request check.
 | `GET /api/random` | `name` (required) | `{"name", "verse"}` — one random letter-match |
 | `GET /api/books` | — | `books[]` of `he`, `en`, `fr`, `section`, `chapters`, `chaptersHe[]`; and `commentaries[]` of `id`, `he`, `en`, `fr` (and `clamp: true` on the midrashim, whose long notes the page shortens), the enabled display-only ones |
 | `GET /api/chapter` | `book` (Hebrew name, required), `chapter` (1..999, required) | `book`, `section`, `chapter`, `chapterHe`, `ref`, `verses[]`, `previous`, `next` — see `app/reader.py` |
-| `GET /api/parasha` | `day` (`YYYY-MM-DD`, required: any date in the week, in the reader's own zone), `israel` (default `true`) | `weekStart`, `readOn`, `portions[]` of `he`, `en`, and `days[]` of `day` (1 = Saturday .. 7 = Friday), `date`, `book`, `start`/`end` (`chapter`, `verse`, `chapterHe`, `verseHe`), `words` — see `app/parasha.py`; 404 `no_portion` |
+| `GET /api/parasha` | `day` (`YYYY-MM-DD`, required: any date in the week, in the reader's own zone), `israel` (default `true`) | `weekStart`, `readOn`, `portions[]` of `he`, `en`, and `days[]` of `day` (1 = Saturday .. 7 = Friday), `date`, `book`, `start`/`end` (`chapter`, `verse`, `chapterHe`, `verseHe`), `words`, `hebrew` (`day`, `dayHe`, `monthHe`, `monthEn`, `year`, `yearHe`) — see `app/parasha.py`; 404 `no_portion` |
 | `GET /api/commentary` | `book`, `chapter` (1..999), `commentary` (an id from `/api/books`), all required | `commentary`, `license`, `verses[]` of `verse` and `text` (only verses it has text on); 404 with `unknown_book`, `chapter_not_found` or `unknown_commentary` |
 | `GET /` + `/static/*` | — | The frontend, same origin |
 

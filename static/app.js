@@ -1947,15 +1947,40 @@
     return row;
   }
 
-  // Mark every verse of the range that falls in this chapter, as a day's part of the parasha.
+  // Show only the verses of the range that fall in this chapter, as a day's part of the parasha,
+  // with a line above them to show the whole chapter and back. A chapter the range does not
+  // reach is shown whole.
   function markReaderRange(data) {
     if (readerRange.book !== data.book.he) return;
     var from = readerRange.from.chapter * 1000 + readerRange.from.verse;
     var to = readerRange.to.chapter * 1000 + readerRange.to.verse;
+    var inside = 0;
     readerPageEl.querySelectorAll("[data-verse]").forEach(function (row) {
       var here = data.chapter * 1000 + Number(row.dataset.verse);
-      if (here >= from && here <= to) row.classList.add("reader-verse-target");
+      if (here >= from && here <= to) {
+        row.classList.add("reader-verse-target");
+        inside += 1;
+      } else {
+        row.classList.add("reader-verse-outside");
+      }
     });
+    if (!inside) return;
+    var note = el("p", "reader-range-note");
+    var toggle = el("button", "copy");
+    toggle.type = "button";
+    function sync() {
+      readerPageEl.classList.toggle("show-whole-chapter", !!readerRange.showAll);
+      note.firstChild.textContent = t(locale, readerRange.showAll ? "reader.rangeMarked" : "reader.rangeOnly") + " ";
+      toggle.textContent = t(locale, readerRange.showAll ? "reader.rangeOnlyButton" : "reader.rangeWholeButton");
+    }
+    note.appendChild(document.createTextNode(""));
+    note.appendChild(toggle);
+    toggle.addEventListener("click", function () {
+      readerRange.showAll = !readerRange.showAll;
+      sync();
+    });
+    sync();
+    readerPageEl.insertBefore(note, readerPageEl.firstChild);
   }
 
   // Bring that verse into view.
@@ -2171,10 +2196,66 @@
   var weekData = null; // the last /api/parasha response, kept to redraw on a language switch
   var weekRequest = 0; // a newer week asked for makes an older answer stale
   var weekDate = new Date(); // any day in the week on screen
+  var WEEK_PLANS_KEY = "pasuk-leshem:week-plans";
+  var WEEK_PLANS_KEPT = 30; // how many weeks are kept on the device
+  var WEEK_PREFETCH = 8; // weeks ahead fetched for the next launch
 
   function isoDate(date) {
     var month = String(date.getMonth() + 1).padStart(2, "0");
     return date.getFullYear() + "-" + month + "-" + String(date.getDate()).padStart(2, "0");
+  }
+
+  // Weeks already fetched, kept on the device: a week's portion never changes, so a kept week
+  // is never stale and the server is asked only for one that is not.
+  function readWeekPlans() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(WEEK_PLANS_KEY));
+      return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+    } catch (err) {
+      return {}; // private browsing, or a value that is not JSON: nothing is kept
+    }
+  }
+
+  function keepWeekPlan(data) {
+    var plans = readWeekPlans();
+    plans[data.weekStart] = data;
+    Object.keys(plans).sort().slice(0, -WEEK_PLANS_KEPT).forEach(function (old) { delete plans[old]; });
+    try {
+      localStorage.setItem(WEEK_PLANS_KEY, JSON.stringify(plans));
+    } catch (err) {
+      /* the week shows now but is fetched again next time */
+    }
+  }
+
+  // The Saturday on or before a date, as the server counts a week; the key of a kept week.
+  function weekStartOf(date) {
+    var back = (date.getDay() + 1) % 7; // Saturday is day 6
+    return isoDate(new Date(date.getFullYear(), date.getMonth(), date.getDate() - back));
+  }
+
+  function fetchWeekPlan(date) {
+    return apiFetch("/api/parasha?day=" + isoDate(date))
+      .then(function (response) {
+        if (!response.ok) throw new Error("parasha " + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        keepWeekPlan(data);
+        return data;
+      });
+  }
+
+  // The weeks ahead of the one shown, so a later launch finds them without waiting on the server.
+  function prefetchWeekPlans() {
+    var kept = readWeekPlans();
+    for (var ahead = 1; ahead <= WEEK_PREFETCH; ahead++) {
+      var date = new Date(weekDate.getFullYear(), weekDate.getMonth(), weekDate.getDate() + 7 * ahead);
+      if (!kept[weekStartOf(date)]) fetchWeekPlan(date).catch(function () { /* the next launch tries again */ });
+    }
+  }
+
+  function weekHebrewDate(hebrew) {
+    return locale === "he" ? hebrew.dayHe + " " + hebrew.monthHe : hebrew.day + " " + hebrew.monthEn;
   }
 
   function readWeekProgress() {
@@ -2234,7 +2315,7 @@
     top.appendChild(el("span", "week-day-name", t(locale, "week.day" + part.day)));
     var when = new Date(part.date + "T00:00:00").toLocaleDateString(locale === "he" ? "he-IL" : locale,
       { weekday: "short", day: "numeric", month: "short" });
-    top.appendChild(el("span", "week-day-date", when));
+    top.appendChild(el("span", "week-day-date", when + " · " + weekHebrewDate(part.hebrew)));
     row.appendChild(top);
     row.appendChild(hebrewSpan("div", "week-day-ref", weekReference(part)));
     var checks = el("div", "week-day-checks");
@@ -2272,21 +2353,24 @@
 
   function showWeek() {
     var request = ++weekRequest;
-    weekData = null;
+    var kept = readWeekPlans()[weekStartOf(weekDate)] || null;
+    weekData = kept;
     weekDaysEl.textContent = "";
-    ensureReaderBooks()
-      .catch(function () { /* book names stay in Hebrew */ })
-      .then(function () {
-        return apiFetch("/api/parasha?day=" + isoDate(weekDate));
-      })
-      .then(function (response) {
-        if (!response.ok) throw new Error("parasha " + response.status);
-        return response.json();
-      })
+    if (kept) {
+      renderWeek();
+      prefetchWeekPlans();
+    }
+    // Book names in another language come from the server too, but the week does not wait on them.
+    if (locale !== "he") {
+      ensureReaderBooks().then(function () { if (request === weekRequest) renderWeek(); }, function () {});
+    }
+    if (kept) return;
+    fetchWeekPlan(weekDate)
       .then(function (data) {
         if (request !== weekRequest) return;
         weekData = data;
         renderWeek();
+        prefetchWeekPlans();
       })
       .catch(function () {
         if (request !== weekRequest) return;

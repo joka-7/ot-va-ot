@@ -398,6 +398,16 @@ Midrash Rabbah, Sifra and Sifrei Bamidbar are left out because Sefaria's only He
 version of each is licensed "unknown" or CC-BY-SA. Rebuild with
 `python -m scripts.build_midrashim` (all) or `--midrash mekhilta`.
 
+### The weekly parasha (שניים מקרא ואחד תרגום)
+
+The **פרשה** tab cuts the week's portion into seven days, Saturday (ראשון) to Friday (שביעי), as
+equal in words as whole verses allow (`app/parasha.py`, `GET /api/parasha`; the Israeli
+schedule, with `pyluach` for the dates and `data/parashot.json` for where each portion starts
+and ends). Each day has a Hebrew and a Gregorian date, three ticks (the text twice, Targum
+once, kept per week in `localStorage`) and a "Read" link that opens the reader on that day's
+verses only, with one line above them to show the whole chapter and back. The week and the
+eight after it are kept on the device, so the tab opens at once even while the server sleeps.
+
 ### Saving, recent chapters, saved searches and download
 
 The Read tab's card has three icon buttons in its header, beside the chapter's title
