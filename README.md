@@ -280,7 +280,9 @@ buttons. The chapter is in the URL hash (`#/read/<book>/<chapter>`, plus
 to that one, as the parasha tab's "Read" link does), so it can be linked to and the back button steps
 between chapters; the last chapter read is kept in `localStorage`, and the Read
 tab reopens it. Opening the site with no link or search lands there too: on the last
-chapter read, or Genesis 1 for a first visit. Every search result has an "Open in reader" link that opens its
+chapter read, or Genesis 1 for a first visit. The copy of the chapter kept on the device is
+drawn at once, also when the address already names it, so a sleeping server does not leave
+a blank page; the live chapter replaces it when the server answers. Every search result has an "Open in reader" link that opens its
 chapter at that verse. The text comes from `GET /api/chapter` (`app/reader.py`);
 the book and chapter pickers are filled from `GET /api/books`, which also carries
 each chapter's Hebrew numeral so the browser does not carry its own gematria.

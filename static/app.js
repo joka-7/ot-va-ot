@@ -1402,7 +1402,7 @@
   }
 
   // Show a kept chapter from the device, whether or not there is a connection.
-  function openSaved(item, replace) {
+  function openSaved(item, keepAddress) {
     // The commentary list is not there when the server cannot be reached: use the saved one.
     if (!readerCommentaries.length) {
       readerCommentaries = (item.commentaryList || []).filter(function (commentary) { return commentary.id !== "rashi"; });
@@ -1418,7 +1418,7 @@
     renderReaderChapter(item.data);
     syncSaveButton();
     readerPageEl.setAttribute("aria-busy", "false");
-    history[replace ? "replaceState" : "pushState"](null, "", readerHash(readerPosition));
+    if (!keepAddress) history.pushState(null, "", readerHash(readerPosition));
     readerSavedEl.open = false;
     readerEl.scrollIntoView({ block: "start" });
   }
@@ -1966,8 +1966,13 @@
     return true;
   }
 
+  // The chapter drawn from the device at start (openLastRead), kept on screen until its live version arrives.
+  var deviceCopyKey = null;
+
   function showReaderChapter(position, pushHash) {
     var request = ++readerRequest;
+    var keepCopy = deviceCopyKey === position.book + "|" + position.chapter;
+    deviceCopyKey = null;
     readerShowingSaved = false;
     readerPosition = position;
     readerRange = position.range || (position.verse && position.to
@@ -1981,12 +1986,14 @@
       history.pushState(null, "", readerHash(position));
     }
 
-    readerCitationEl.textContent = "";
-    readerPageEl.setAttribute("aria-busy", "true");
-    readerPageEl.textContent = "";
-    var skeleton = el("div", "skeleton");
-    for (var i = 0; i < 4; i++) skeleton.appendChild(el("div", "line"));
-    readerPageEl.appendChild(skeleton);
+    if (!keepCopy) {
+      readerCitationEl.textContent = "";
+      readerPageEl.setAttribute("aria-busy", "true");
+      readerPageEl.textContent = "";
+      var skeleton = el("div", "skeleton");
+      for (var i = 0; i < 4; i++) skeleton.appendChild(el("div", "line"));
+      readerPageEl.appendChild(skeleton);
+    }
     var disarm = armWaking();
 
     var params = new URLSearchParams({ book: position.book, chapter: String(position.chapter) });
@@ -2014,7 +2021,7 @@
         if (!(position.verse && showReaderTarget(position.verse))) readerEl.scrollIntoView({ block: "start" });
       })
       .catch(function (error) {
-        if (request !== readerRequest) return;
+        if (request !== readerRequest || keepCopy) return; // the device copy stays if the server cannot answer
         // The pickers go back to a chapter that exists, so the Read tab and the
         // pickers can recover from a bad link.
         readerPosition = readerGood || { book: readerBooks[0].he, chapter: 1 };
@@ -2067,15 +2074,16 @@
       .catch(function () {
         // Without the server the saved chapters are still there to open.
         syncReaderTools();
+        if (readerShowingSaved) return; // the device copy stays if the server cannot answer
         readerPageEl.textContent = "";
         readerPageEl.appendChild(notice(t(locale, "error.title"), t(locale, "reader.error"), "error"));
       });
   }
 
-  // Open where the visitor left off. The copy of that chapter kept on the device is drawn at once,
-  // so the first screen does not wait on a server that may be waking; the pickers fill in after.
-  function openLastRead() {
-    var position = loadReaderPosition();
+  // Open `wanted` (a chapter linked to), or where the visitor left off. The copy of that chapter kept
+  // on the device is drawn at once, so the first screen does not wait on a server that may be waking.
+  function openLastRead(wanted) {
+    var position = wanted || loadReaderPosition();
     var key = position && position.book + "|" + position.chapter;
     savedAll()
       .then(function (items) { return items.find(function (item) { return item.id === key; }); })
@@ -2084,8 +2092,9 @@
         if (kept) {
           showView("read");
           openSaved(kept, true);
+          deviceCopyKey = key;
         }
-        openReader(null, false, true);
+        openReader(wanted || null, false, true);
       });
   }
 
@@ -2350,7 +2359,7 @@
 
   var initialPosition = readerPositionFromHash();
   var initial = fromHash();
-  if (initialPosition) openReader(initialPosition, false);
+  if (initialPosition) openLastRead(initialPosition);
   else if (location.hash === "#/week") openWeek(false);
   else if (initial) runFromHash(initial);
   // No link and no search: open where the visitor left off, or at the first chapter of the Tanakh.
